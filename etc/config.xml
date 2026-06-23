@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <perspective_ai_customization>
+            <general>
+                <enabled>0</enabled>
+                <widget_title>Style Assistant</widget_title>
+            </general>
+            <agent>
+                <chat_model>openrouter/auto</chat_model>
+                <embedding_model>google/gemini-embedding-001</embedding_model>
+                <max_iterations>5</max_iterations>
+                <http_timeout>20</http_timeout>
+            </agent>
+            <opensearch>
+                <index_name>perspective_ai_products</index_name>
+                <vector_dimensions>3072</vector_dimensions>
+                <batch_size>50</batch_size>
+            </opensearch>
+            <email>
+                <enabled>1</enabled>
+                <sender_identity>general</sender_identity>
+                <approve_template>perspective_ai_customization_email_approve_template</approve_template>
+                <decline_template>perspective_ai_customization_email_decline_template</decline_template>
+            </email>
+        </perspective_ai_customization>
+    </default>
+</config>

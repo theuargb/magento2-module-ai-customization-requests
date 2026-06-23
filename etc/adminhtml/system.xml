@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="perspective_ai_customization" translate="label" sortOrder="950" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Perspective AI Customization</label>
+            <tab>general</tab>
+            <resource>Perspective_AiCustomizationRequests::config</resource>
+
+            <group id="general" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Module</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="widget_title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Widget Title</label>
+                </field>
+            </group>
+
+            <group id="openrouter" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>OpenRouter</label>
+                <field id="api_key" translate="label" type="obscure" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>API Key</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="site_url" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Site URL Header</label>
+                </field>
+                <field id="site_title" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Site Title Header</label>
+                </field>
+            </group>
+
+            <group id="agent" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Agent</label>
+                <field id="chat_model" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Chat Model</label>
+                </field>
+                <field id="embedding_model" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Embedding Model</label>
+                </field>
+                <field id="max_iterations" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Max Tool Iterations</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                </field>
+                <field id="http_timeout" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>HTTP Timeout</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                </field>
+            </group>
+
+            <group id="opensearch" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>OpenSearch</label>
+                <field id="host" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Host Override</label>
+                    <comment>Leave empty to reuse catalog search OpenSearch host.</comment>
+                </field>
+                <field id="port" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Port Override</label>
+                </field>
+                <field id="index_name" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>AI Index Name</label>
+                </field>
+                <field id="username" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Username Override</label>
+                </field>
+                <field id="password" translate="label" type="obscure" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Password Override</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="vector_dimensions" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Vector Dimensions</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                </field>
+                <field id="batch_size" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Index Batch Size</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                </field>
+            </group>
+
+            <group id="email" translate="label" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Email</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Send Customer Emails</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="sender_identity" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Sender Identity</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
+                </field>
+                <field id="approve_template" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Approval Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
+                <field id="decline_template" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Decline Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

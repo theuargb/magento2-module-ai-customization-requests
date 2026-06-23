@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Perspective_AiCustomizationRequests::requests"
+             title="AI Requests"
+             module="Perspective_AiCustomizationRequests"
+             sortOrder="90"
+             parent="Magento_Backend::content"
+             action="perspective_ai_request/request/index"
+             resource="Perspective_AiCustomizationRequests::requests"/>
+    </menu>
+</config>

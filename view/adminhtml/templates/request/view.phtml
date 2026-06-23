@@ -1,0 +1,89 @@
+<?php
+/** @var \Perspective\AiCustomizationRequests\Block\Adminhtml\Request\View $block */
+$request = $block->getRequestModel();
+$changes = $block->decodeJson($request->getData('requested_changes_json'));
+$transcript = $block->decodeJson($request->getData('source_transcript_json'));
+?>
+<div class="admin__page-section">
+    <div class="admin__page-section-title">
+        <span class="title"><?= $block->escapeHtml(__('Request Details')) ?></span>
+    </div>
+    <div class="admin__page-section-content">
+        <p><strong><?= $block->escapeHtml(__('UID')) ?>:</strong> <?= $block->escapeHtml((string)$request->getData('request_uid')) ?></p>
+        <p><strong><?= $block->escapeHtml(__('Customer Email')) ?>:</strong> <?= $block->escapeHtml((string)$request->getData('customer_email')) ?></p>
+        <p><strong><?= $block->escapeHtml(__('Status')) ?>:</strong> <?= $block->escapeHtml((string)$request->getData('status')) ?></p>
+        <p><strong><?= $block->escapeHtml(__('Base Product SKU')) ?>:</strong> <?= $block->escapeHtml((string)$request->getData('base_product_sku')) ?></p>
+        <p><strong><?= $block->escapeHtml(__('Summary')) ?>:</strong> <?= $block->escapeHtml((string)$request->getData('summary')) ?></p>
+        <p><strong><?= $block->escapeHtml(__('Draft Product SKU')) ?>:</strong> <?= $block->escapeHtml((string)$request->getData('draft_product_sku')) ?></p>
+        <p><strong><?= $block->escapeHtml(__('Masked Quote ID')) ?>:</strong> <?= $block->escapeHtml((string)$request->getData('masked_quote_id')) ?></p>
+    </div>
+</div>
+
+<div class="admin__page-section">
+    <div class="admin__page-section-title">
+        <span class="title"><?= $block->escapeHtml(__('Requested Changes')) ?></span>
+    </div>
+    <div class="admin__page-section-content">
+        <pre><?= $block->escapeHtml(json_encode($changes, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) ?></pre>
+    </div>
+</div>
+
+<div class="admin__page-section">
+    <div class="admin__page-section-title">
+        <span class="title"><?= $block->escapeHtml(__('Conversation Transcript')) ?></span>
+    </div>
+    <div class="admin__page-section-content">
+        <?php foreach ($transcript as $message): ?>
+            <p>
+                <strong><?= $block->escapeHtml((string)($message['role'] ?? '')) ?>:</strong>
+                <?= $block->escapeHtml((string)($message['content'] ?? '')) ?>
+            </p>
+        <?php endforeach; ?>
+    </div>
+</div>
+
+<div class="admin__page-section">
+    <div class="admin__page-section-title">
+        <span class="title"><?= $block->escapeHtml(__('Workflow')) ?></span>
+    </div>
+    <div class="admin__page-section-content" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+        <form method="post" action="<?= $block->escapeUrl($block->getApproveUrl()) ?>">
+            <input type="hidden" name="form_key" value="<?= $block->escapeHtmlAttr($block->getFormKey()) ?>">
+            <label class="admin__field-label" for="approval_notes"><strong><?= $block->escapeHtml(__('Approval Notes')) ?></strong></label>
+            <textarea class="admin__control-textarea" name="approval_notes" id="approval_notes" rows="6"></textarea>
+            <div style="margin-top:12px;">
+                <button type="submit" class="action-primary">
+                    <span><?= $block->escapeHtml(__('Approve And Send')) ?></span>
+                </button>
+            </div>
+        </form>
+
+        <form method="post" action="<?= $block->escapeUrl($block->getDeclineUrl()) ?>">
+            <input type="hidden" name="form_key" value="<?= $block->escapeHtmlAttr($block->getFormKey()) ?>">
+            <label class="admin__field-label" for="decline_reason"><strong><?= $block->escapeHtml(__('Decline Reason')) ?></strong></label>
+            <textarea class="admin__control-textarea" name="decline_reason" id="decline_reason" rows="6" required></textarea>
+            <div style="margin-top:12px;">
+                <button type="submit" class="action-secondary">
+                    <span><?= $block->escapeHtml(__('Decline')) ?></span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="admin__page-section">
+    <div class="admin__page-section-title">
+        <span class="title"><?= $block->escapeHtml(__('History')) ?></span>
+    </div>
+    <div class="admin__page-section-content">
+        <?php foreach ($block->getHistory() as $history): ?>
+            <p>
+                <strong><?= $block->escapeHtml((string)$history->getData('action')) ?></strong>
+                <?= $block->escapeHtml((string)$history->getData('created_at')) ?>
+                <?php if ($history->getData('note')): ?>
+                    : <?= $block->escapeHtml((string)$history->getData('note')) ?>
+                <?php endif; ?>
+            </p>
+        <?php endforeach; ?>
+    </div>
+</div>
