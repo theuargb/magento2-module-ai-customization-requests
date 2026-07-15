@@ -1,26 +1,6 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <type name="Magento\Catalog\Model\Product\CopyConstructor\Composite">
-        <arguments>
-            <argument name="constructors" xsi:type="array">
-                <item name="crossSell" xsi:type="string">Magento\Catalog\Model\Product\CopyConstructor\CrossSell</item>
-                <item name="upSell" xsi:type="string">Magento\Catalog\Model\Product\CopyConstructor\UpSell</item>
-                <item name="related" xsi:type="string">Magento\Catalog\Model\Product\CopyConstructor\Related</item>
-                <item name="catalog_inventory" xsi:type="string">Magento\CatalogInventory\Model\Product\CopyConstructor\CatalogInventory</item>
-                <item name="downloadable" xsi:type="string">Magento\Downloadable\Model\Product\CopyConstructor\Downloadable</item>
-                <item name="grouped" xsi:type="string">Magento\GroupedProduct\Model\Product\CopyConstructor\Grouped</item>
-                <item name="bundle" xsi:type="string">Magento\Bundle\Model\Product\CopyConstructor\Bundle</item>
-            </argument>
-        </arguments>
-    </type>
-
-    <type name="Magento\Catalog\Model\Product\Copier">
-        <arguments>
-            <argument name="copyConstructor" xsi:type="object">Magento\Catalog\Model\Product\CopyConstructor\Composite</argument>
-        </arguments>
-    </type>
-
     <type name="Perspective\AiCustomizationRequests\Model\Agent\ToolExecutor">
         <arguments>
             <argument name="tools" xsi:type="array">
@@ -28,9 +8,6 @@
                 <item name="get_product_context" xsi:type="object">Perspective\AiCustomizationRequests\Model\Agent\Tool\GetProductContextTool</item>
                 <item name="save_customer_email" xsi:type="object">Perspective\AiCustomizationRequests\Model\Agent\Tool\SaveCustomerEmailTool</item>
                 <item name="upsert_customization_request" xsi:type="object">Perspective\AiCustomizationRequests\Model\Agent\Tool\UpsertCustomizationRequestTool</item>
-                <item name="create_product_draft" xsi:type="object">Perspective\AiCustomizationRequests\Model\Agent\Tool\CreateProductDraftTool</item>
-                <item name="create_quote_draft" xsi:type="object">Perspective\AiCustomizationRequests\Model\Agent\Tool\CreateQuoteDraftTool</item>
-                <item name="send_admin_notification" xsi:type="object">Perspective\AiCustomizationRequests\Model\Agent\Tool\SendAdminNotificationTool</item>
             </argument>
         </arguments>
     </type>

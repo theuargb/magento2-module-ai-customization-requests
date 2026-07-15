@@ -64,10 +64,7 @@ class ModuleConfigTest extends TestCase
         $this->scopeConfig->method('getValue')->willReturnMap([
             ['perspective_ai_customization/openrouter/api_key', 'stores', null, 'plain-text-key'],
         ]);
-        $this->encryptor->expects(self::once())
-            ->method('decrypt')
-            ->with('plain-text-key')
-            ->willThrowException(new \RuntimeException('Not encrypted.'));
+        $this->encryptor->expects(self::never())->method('decrypt');
 
         $config = new ModuleConfig($this->scopeConfig, $this->encryptor);
 
@@ -87,5 +84,32 @@ class ModuleConfigTest extends TestCase
         $config = new ModuleConfig($this->scopeConfig, $this->encryptor);
 
         self::assertSame('', $config->getOpenRouterApiKey());
+    }
+
+    public function testBuildsStorefrontWidgetConfigurationFromDedicatedGroups(): void
+    {
+        $this->scopeConfig->method('getValue')->willReturnCallback(
+            static function (string $path): ?string {
+                return match ($path) {
+                    'perspective_ai_customization/widget/title' => 'Product Guide',
+                    'perspective_ai_customization/widget/icon' => 'G',
+                    'perspective_ai_customization/widget_welcome/welcome_title' => 'How can we help?',
+                    'perspective_ai_customization/widget_messages/status_ready' => 'Available now',
+                    'perspective_ai_customization/widget_appearance/primary_color' => '#a1B2c3',
+                    'perspective_ai_customization/widget_appearance/border_color' => 'blue',
+                    default => null,
+                };
+            }
+        );
+
+        $config = new ModuleConfig($this->scopeConfig, $this->encryptor);
+        $widget = $config->getWidgetConfig();
+
+        self::assertSame('Product Guide', $widget['title']);
+        self::assertSame('G', $widget['icon']);
+        self::assertSame('How can we help?', $widget['copy']['welcomeTitle']);
+        self::assertSame('Available now', $widget['copy']['ready']);
+        self::assertSame('#A1B2C3', $widget['colors']['primary']);
+        self::assertSame('#E5E9F0', $widget['colors']['border']);
     }
 }

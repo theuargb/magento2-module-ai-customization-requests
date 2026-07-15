@@ -8,6 +8,7 @@ use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
+use Magento\Store\Model\StoreManagerInterface;
 use Perspective\AiCustomizationRequests\Model\Agent\AgentLoop;
 use Perspective\AiCustomizationRequests\Model\ChatSessionService;
 use Perspective\AiCustomizationRequests\Model\Config\ModuleConfig;
@@ -20,7 +21,8 @@ class SendAiChatMessage implements ResolverInterface
         private readonly ChatSessionService $chatSessionService,
         private readonly CustomizationRequestService $customizationRequestService,
         private readonly AgentLoop $agentLoop,
-        private readonly CustomerRepositoryInterface $customerRepository
+        private readonly CustomerRepositoryInterface $customerRepository,
+        private readonly StoreManagerInterface $storeManager
     ) {
     }
 
@@ -31,17 +33,31 @@ class SendAiChatMessage implements ResolverInterface
         }
 
         $messageText = trim((string)$args['input']['message']);
-        if ($messageText === '') {
-            throw new GraphQlInputException(__('Message cannot be empty.'));
+        $storeId = (int)$this->storeManager->getStore()->getId();
+        if ($messageText === '' || mb_strlen($messageText) > $this->moduleConfig->getMaxMessageLength($storeId)) {
+            throw new GraphQlInputException(__('Message must contain no more than %1 characters.', $this->moduleConfig->getMaxMessageLength($storeId)));
         }
 
-        $session = $this->chatSessionService->requireByUid((string)$args['input']['session_uid']);
         $customerId = (int)$context->getUserId() ?: null;
+        $session = $this->chatSessionService->requireAuthorized(
+            (string)$args['input']['session_uid'],
+            (string)$args['input']['resume_token'],
+            $storeId,
+            $customerId
+        );
         if ($customerId && !$session->getData('customer_email')) {
             $this->chatSessionService->attachCustomerEmail($session, $this->customerRepository->getById($customerId)->getEmail());
         }
 
-        $this->chatSessionService->addMessage($session, 'user', $messageText);
+        $this->chatSessionService->addMessage(
+            $session,
+            'user',
+            $messageText,
+            'text',
+            [],
+            null,
+            (string)$args['input']['client_message_id']
+        );
         $result = $this->agentLoop->run($session, $customerId);
         $assistantMessageModel = $this->chatSessionService->addMessage(
             $session,
@@ -49,7 +65,6 @@ class SendAiChatMessage implements ResolverInterface
             (string)$result['content'],
             'text',
             $result['product_mentions'] ?? [],
-            [],
             $result['model_name'] ?? null
         );
 

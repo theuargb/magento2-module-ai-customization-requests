@@ -5,13 +5,64 @@
         <perspective_ai_customization>
             <general>
                 <enabled>0</enabled>
-                <widget_title>Style Assistant</widget_title>
             </general>
+            <widget>
+                <title>Style Assistant</title>
+                <icon>S</icon>
+                <close_label>Close assistant</close_label>
+                <clear_label>New chat</clear_label>
+                <input_placeholder>Describe what you are looking for…</input_placeholder>
+                <send_label>Send</send_label>
+                <helper_text>Enter to send · Shift + Enter for a new line</helper_text>
+                <user_label>You</user_label>
+                <context_label>Asking about</context_label>
+                <context_remove_label>Remove</context_remove_label>
+                <product_label>Catalogue match</product_label>
+                <product_ask_label>Clarify</product_ask_label>
+                <product_view_label>View</product_view_label>
+            </widget>
+            <widget_welcome>
+                <welcome_eyebrow>Your private fitting</welcome_eyebrow>
+                <welcome_title>What should the right piece do for you?</welcome_title>
+                <welcome_copy>Give me one useful detail. I will search the catalogue, compare options, or prepare a custom request.</welcome_copy>
+                <prompt_one_label>Weather</prompt_one_label>
+                <prompt_one_text>I need shoes for a rainy day</prompt_one_text>
+                <prompt_two_label>Occasion</prompt_two_label>
+                <prompt_two_text>Help me choose something for an evening out</prompt_two_text>
+                <prompt_three_label>Custom detail</prompt_three_label>
+                <prompt_three_text>I like a product, but want to change it</prompt_three_text>
+            </widget_welcome>
+            <widget_messages>
+                <status_connecting>Connecting</status_connecting>
+                <status_ready>Ready to help</status_ready>
+                <status_thinking>Considering your request</status_thinking>
+                <status_unavailable>Unavailable</status_unavailable>
+                <status_message_failed>Message not sent</status_message_failed>
+                <error_eyebrow>Connection paused</error_eyebrow>
+                <error_title>The assistant could not start.</error_title>
+                <error_copy>Check the connection and try again.</error_copy>
+                <error_retry_label>Try again</error_retry_label>
+                <message_send_error>The message could not be sent.</message_send_error>
+            </widget_messages>
+            <widget_appearance>
+                <primary_color>#1463D9</primary_color>
+                <primary_hover_color>#0C4EAE</primary_hover_color>
+                <on_primary_color>#FFFFFF</on_primary_color>
+                <icon_background_color>#FFFFFF</icon_background_color>
+                <icon_foreground_color>#1463D9</icon_foreground_color>
+                <surface_color>#FFFFFF</surface_color>
+                <canvas_color>#F7F9FC</canvas_color>
+                <text_color>#162033</text_color>
+                <muted_color>#667085</muted_color>
+                <border_color>#E5E9F0</border_color>
+            </widget_appearance>
             <agent>
                 <chat_model>openrouter/auto</chat_model>
                 <embedding_model>google/gemini-embedding-001</embedding_model>
                 <max_iterations>5</max_iterations>
                 <http_timeout>20</http_timeout>
+                <max_message_length>2000</max_message_length>
+                <session_ttl_hours>168</session_ttl_hours>
             </agent>
             <opensearch>
                 <index_name>perspective_ai_products</index_name>

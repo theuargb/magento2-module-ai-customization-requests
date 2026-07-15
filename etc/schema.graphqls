@@ -1,42 +1,37 @@
 type Query {
-    aiChatConfig: AiChatConfig
-        @resolver(class: "Perspective\\AiCustomizationRequests\\GraphQl\\Resolver\\AiChatConfig")
-        @doc(description: "Returns storefront AI chat configuration.")
-    aiChatSession(session_uid: String!): AiChatSession
-        @resolver(class: "Perspective\\AiCustomizationRequests\\GraphQl\\Resolver\\AiChatSession")
-        @doc(description: "Returns a persisted storefront AI chat session.")
+    resumeAiChatSession(input: ResumeAiChatSessionInput!): AiChatSession!
+        @resolver(class: "Perspective\\AiCustomizationRequests\\GraphQl\\Resolver\\ResumeAiChatSession")
+        @doc(description: "Resumes an authorized storefront AI chat session.")
 }
 
 type Mutation {
-    startAiChatSession(input: StartAiChatSessionInput): AiChatSession!
+    startAiChatSession: AiChatSession!
         @resolver(class: "Perspective\\AiCustomizationRequests\\GraphQl\\Resolver\\StartAiChatSession")
-        @doc(description: "Creates or restores an AI chat session.")
+        @doc(description: "Creates a storefront AI chat session.")
     sendAiChatMessage(input: SendAiChatMessageInput!): SendAiChatTurnOutput!
         @resolver(class: "Perspective\\AiCustomizationRequests\\GraphQl\\Resolver\\SendAiChatMessage")
         @doc(description: "Sends a chat message through the managed AI agent loop.")
-    restoreAiDraftQuote(token: String!): RestoreAiDraftQuoteOutput!
-        @resolver(class: "Perspective\\AiCustomizationRequests\\GraphQl\\Resolver\\RestoreAiDraftQuote")
-        @doc(description: "Restores an approved draft quote into the active checkout session.")
+    restoreAiPreparedCart(token: String!): RestoreAiPreparedCartOutput!
+        @resolver(class: "Perspective\\AiCustomizationRequests\\GraphQl\\Resolver\\RestoreAiPreparedCart")
+        @doc(description: "Adds the approved customization to the caller's active cart.")
 }
 
-input StartAiChatSessionInput {
+input ResumeAiChatSessionInput {
     session_uid: String
-    customer_email: String
+    resume_token: String!
 }
 
 input SendAiChatMessageInput {
     session_uid: String!
+    resume_token: String!
+    client_message_id: String!
     message: String!
-}
-
-type AiChatConfig {
-    enabled: Boolean!
-    widget_title: String!
+    selected_product_sku: String
 }
 
 type AiChatSession {
     session_uid: String!
-    customer_email: String
+    resume_token: String
     request_uid: String
     messages: [AiChatMessage!]!
 }
@@ -53,7 +48,8 @@ type AiProductMention {
     sku: String!
     name: String!
     url: String
-    context_token: String!
+    image_url: String
+    selected: Boolean!
 }
 
 type SendAiChatTurnOutput {
@@ -62,7 +58,7 @@ type SendAiChatTurnOutput {
     request_uid: String
 }
 
-type RestoreAiDraftQuoteOutput {
+type RestoreAiPreparedCartOutput {
     success: Boolean!
     cart_url: String
     masked_cart_id: String

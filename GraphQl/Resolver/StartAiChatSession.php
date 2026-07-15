@@ -24,20 +24,19 @@ class StartAiChatSession implements ResolverInterface
     public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null): array
     {
         $customerId = (int)$context->getUserId() ?: null;
-        $customerEmail = $args['input']['customer_email'] ?? null;
+        $customerEmail = null;
 
         if ($customerId) {
             $customerEmail = $this->customerRepository->getById($customerId)->getEmail();
         }
 
-        $session = $this->chatSessionService->getOrCreate(
-            $args['input']['session_uid'] ?? null,
+        [$session, $resumeToken] = $this->chatSessionService->create(
             (int)$this->storeManager->getStore()->getId(),
             $customerId,
             $customerEmail
         );
         $request = $this->customizationRequestService->getLatestForSession((int)$session->getId());
 
-        return $this->chatSessionService->formatSession($session, $request);
+        return $this->chatSessionService->formatSession($session, $request, $resumeToken);
     }
 }

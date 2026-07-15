@@ -73,7 +73,6 @@
             <settings>
                 <label translate="true">Summary</label>
                 <filter>text</filter>
-                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
             </settings>
         </column>
         <column name="created_at" class="Magento\Ui\Component\Listing\Columns\Date" component="Magento_Ui/js/grid/columns/date">

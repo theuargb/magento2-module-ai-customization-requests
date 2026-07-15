@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Perspective\AiCustomizationRequests\Model\Agent\Tool;
 
+use Magento\Framework\Exception\LocalizedException;
 use Perspective\AiCustomizationRequests\Model\Agent\AgentContext;
 use Perspective\AiCustomizationRequests\Model\OpenSearch\ProductRetriever;
 
@@ -38,6 +39,9 @@ class SearchCatalogTool implements ToolInterface
     public function execute(array $arguments, AgentContext $context): array
     {
         $query = trim((string)($arguments['query'] ?? ''));
+        if ($query === '') {
+            throw new LocalizedException(__('A catalog search query is required.'));
+        }
         $limit = max(1, min(10, (int)($arguments['limit'] ?? 5)));
 
         return [

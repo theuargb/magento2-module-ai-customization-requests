@@ -6,27 +6,23 @@ namespace Perspective\AiCustomizationRequests\Model\Agent\Tool;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Perspective\AiCustomizationRequests\Model\Agent\AgentContext;
-use Perspective\AiCustomizationRequests\Model\ChatSessionService;
-use Perspective\AiCustomizationRequests\Model\CustomizationRequest;
 use Perspective\AiCustomizationRequests\Model\CustomizationRequestService;
+use Perspective\AiCustomizationRequests\Model\Workflow\AdminNotifier;
 
 class UpsertCustomizationRequestTool implements ToolInterface
 {
     public function __construct(
         private readonly CustomizationRequestService $customizationRequestService,
-        private readonly ChatSessionService $chatSessionService,
-        private readonly ProductRepositoryInterface $productRepository
+        private readonly ProductRepositoryInterface $productRepository,
+        private readonly AdminNotifier $adminNotifier
     ) {
     }
 
-    public function getName(): string
-    {
-        return 'upsert_customization_request';
-    }
+    public function getName(): string { return 'save_customization_request'; }
 
     public function getDescription(): string
     {
-        return 'Creates or updates the active customization request draft from the shopper conversation.';
+        return 'Submits the active shopper customization request for administrator review.';
     }
 
     public function getParameters(): array
@@ -34,58 +30,51 @@ class UpsertCustomizationRequestTool implements ToolInterface
         return [
             'type' => 'object',
             'properties' => [
-                'title' => ['type' => 'string'],
-                'summary' => ['type' => 'string'],
+                'title' => ['type' => 'string', 'maxLength' => 255],
+                'summary' => ['type' => 'string', 'maxLength' => 5000],
                 'base_product_sku' => ['type' => 'string'],
                 'requested_changes' => ['type' => 'object'],
             ],
-            'required' => ['summary', 'requested_changes'],
+            'required' => ['title', 'summary', 'base_product_sku', 'requested_changes'],
+            'additionalProperties' => false,
         ];
     }
 
     public function execute(array $arguments, AgentContext $context): array
     {
-        $customerEmail = $context->getCustomerEmail();
-        if (!$customerEmail) {
-            throw new LocalizedException(__('Customer email must be collected before creating the request.'));
+        $email = $context->getCustomerEmail();
+        $sku = trim((string)($arguments['base_product_sku'] ?? ''));
+        $title = trim((string)($arguments['title'] ?? ''));
+        $summary = trim((string)($arguments['summary'] ?? ''));
+        $changes = $arguments['requested_changes'] ?? null;
+        if (!$email || $sku === '' || $title === '' || $summary === '' || !is_array($changes)) {
+            throw new LocalizedException(__('A product, request details, and customer email are required.'));
         }
 
-        $baseProductId = null;
-        $baseProductSku = trim((string)($arguments['base_product_sku'] ?? ''));
-        if ($baseProductSku !== '') {
-            $product = $this->productRepository->get($baseProductSku, false, 0, true);
-            $baseProductId = (int)$product->getId();
-        }
-
-        $transcript = array_map(
-            static fn(array $message): array => [
-                'role' => $message['role'],
-                'content' => $message['content'],
-            ],
-            array_map([$this->chatSessionService, 'formatMessage'], $this->chatSessionService->getMessages($context->getSession()))
+        $product = $this->productRepository->get(
+            $sku,
+            false,
+            (int)$context->getSession()->getData('store_id'),
+            true
         );
-
+        $isNew = $context->getRequest() === null;
         $request = $this->customizationRequestService->createOrUpdateDraft(
             $context->getSession(),
             [
-                'title' => $arguments['title'] ?? null,
-                'summary' => $arguments['summary'] ?? null,
-                'base_product_id' => $baseProductId,
-                'base_product_sku' => $baseProductSku ?: null,
-                'requested_changes' => $arguments['requested_changes'] ?? [],
-                'source_transcript' => $transcript,
-                'status' => CustomizationRequest::STATUS_NEW,
+                'title' => $title,
+                'summary' => $summary,
+                'base_product_id' => (int)$product->getId(),
+                'base_product_sku' => $sku,
+                'requested_changes' => $changes,
             ],
             $context->getCustomerId(),
-            $customerEmail
+            $email
         );
-
         $context->setRequest($request);
+        if ($isNew) {
+            $this->adminNotifier->notifyNewRequest($request);
+        }
 
-        return [
-            'request_uid' => $request->getData('request_uid'),
-            'status' => $request->getData('status'),
-            'base_product_sku' => $request->getData('base_product_sku'),
-        ];
+        return ['request_uid' => (string)$request->getData('request_uid'), 'status' => (string)$request->getData('status')];
     }
 }

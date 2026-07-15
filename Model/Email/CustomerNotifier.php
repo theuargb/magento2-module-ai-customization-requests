@@ -23,11 +23,11 @@ class CustomerNotifier
     ) {
     }
 
-    public function sendApproved(CustomizationRequest $request): void
+    public function sendApproved(CustomizationRequest $request, string $restoreToken): void
     {
         $this->send($request, $this->moduleConfig->getApproveTemplate((int)$request->getData('store_id')), [
             'request_uid' => (string)$request->getData('request_uid'),
-            'restore_url' => $this->buildRestoreUrl($request),
+            'restore_url' => $this->buildRestoreUrl($request, $restoreToken),
         ]);
     }
 
@@ -68,11 +68,11 @@ class CustomerNotifier
         }
     }
 
-    private function buildRestoreUrl(CustomizationRequest $request): string
+    private function buildRestoreUrl(CustomizationRequest $request, string $restoreToken): string
     {
         return $this->urlBuilder->getUrl('', [
             '_scope' => $request->getData('store_id') ?: $this->storeManager->getDefaultStoreView()->getId(),
-            '_query' => ['ai_quote' => $request->getData('quote_restore_token')],
+            '_query' => ['ai_quote' => $restoreToken],
         ]);
     }
 }

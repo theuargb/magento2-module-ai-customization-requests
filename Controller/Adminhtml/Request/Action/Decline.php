@@ -4,15 +4,14 @@ declare(strict_types=1);
 namespace Perspective\AiCustomizationRequests\Controller\Adminhtml\Request\Action;
 
 use Magento\Backend\App\Action;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Exception\LocalizedException;
-use Perspective\AiCustomizationRequests\Model\CustomizationRequest;
 use Perspective\AiCustomizationRequests\Model\CustomizationRequestFactory;
-use Perspective\AiCustomizationRequests\Model\CustomizationRequestService;
-use Perspective\AiCustomizationRequests\Model\Email\CustomerNotifier;
 use Perspective\AiCustomizationRequests\Model\ResourceModel\CustomizationRequest as RequestResource;
+use Perspective\AiCustomizationRequests\Model\Workflow\CustomizationApprovalService;
 
-class Decline extends Action
+class Decline extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Perspective_AiCustomizationRequests::decline';
 
@@ -20,8 +19,7 @@ class Decline extends Action
         Action\Context $context,
         private readonly CustomizationRequestFactory $requestFactory,
         private readonly RequestResource $requestResource,
-        private readonly CustomizationRequestService $customizationRequestService,
-        private readonly CustomerNotifier $customerNotifier
+        private readonly CustomizationApprovalService $approvalService
     ) {
         parent::__construct($context);
     }
@@ -36,19 +34,7 @@ class Decline extends Action
                 throw new LocalizedException(__('Decline reason is required.'));
             }
 
-            $request->addData([
-                'status' => CustomizationRequest::STATUS_DECLINED,
-                'decline_reason' => $reason,
-            ]);
-            $this->requestResource->save($request);
-            $this->customizationRequestService->addHistory(
-                $request,
-                'admin',
-                (int)$this->_auth->getUser()->getId(),
-                'declined',
-                $reason
-            );
-            $this->customerNotifier->sendDeclined($request);
+            $this->approvalService->decline($request, (int)$this->_auth->getUser()->getId(), $reason);
             $this->messageManager->addSuccessMessage(__('The request has been declined.'));
         } catch (\Throwable $exception) {
             $this->messageManager->addErrorMessage($exception->getMessage());

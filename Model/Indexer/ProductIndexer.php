@@ -10,6 +10,7 @@ use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductColl
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Indexer\ActionInterface;
 use Magento\Framework\Mview\ActionInterface as MviewActionInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use Perspective\AiCustomizationRequests\Model\Config\ModuleConfig;
 use Perspective\AiCustomizationRequests\Model\OpenRouter\Client as OpenRouterClient;
 use Perspective\AiCustomizationRequests\Model\OpenSearch\Client as OpenSearchClient;
@@ -24,15 +25,13 @@ class ProductIndexer implements ActionInterface, MviewActionInterface
         private readonly OpenRouterClient $openRouterClient,
         private readonly OpenSearchClient $openSearchClient,
         private readonly ModuleConfig $moduleConfig,
-        private readonly Visibility $productVisibility
+        private readonly Visibility $productVisibility,
+        private readonly StoreManagerInterface $storeManager
     ) {
     }
 
     public function executeFull(): void
     {
-        $storeId = 0;
-        $this->openSearchClient->recreateIndex($storeId);
-
         $collection = $this->productCollectionFactory->create();
         $collection->addAttributeToSelect('entity_id');
         $productIds = array_map('intval', $collection->getAllIds());
@@ -40,8 +39,11 @@ class ProductIndexer implements ActionInterface, MviewActionInterface
             return;
         }
 
-        foreach (array_chunk($productIds, $this->moduleConfig->getIndexBatchSize($storeId)) as $batch) {
-            $this->reindexIds($batch, $storeId);
+        foreach ($this->getStoreIds() as $storeId) {
+            $this->openSearchClient->recreateIndex($storeId);
+            foreach (array_chunk($productIds, $this->moduleConfig->getIndexBatchSize($storeId)) as $batch) {
+                $this->reindexIds($batch, $storeId);
+            }
         }
     }
 
@@ -52,9 +54,10 @@ class ProductIndexer implements ActionInterface, MviewActionInterface
             return;
         }
 
-        $storeId = 0;
-        $this->openSearchClient->ensureIndex($storeId);
-        $this->reindexIds($normalizedIds, $storeId);
+        foreach ($this->getStoreIds() as $storeId) {
+            $this->openSearchClient->ensureIndex($storeId);
+            $this->reindexIds($normalizedIds, $storeId);
+        }
     }
 
     public function executeRow($id): void
@@ -104,5 +107,12 @@ class ProductIndexer implements ActionInterface, MviewActionInterface
         $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
 
         return array_values(array_filter($ids, static fn(int $id): bool => $id > 0));
+    }
+
+    /** @return int[] */
+    private function getStoreIds(): array
+    {
+        $ids = array_map(static fn($store): int => (int)$store->getId(), $this->storeManager->getStores());
+        return $ids ?: [(int)$this->storeManager->getDefaultStoreView()->getId()];
     }
 }

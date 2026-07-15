@@ -4,16 +4,14 @@ declare(strict_types=1);
 namespace Perspective\AiCustomizationRequests\Controller\Adminhtml\Request\Action;
 
 use Magento\Backend\App\Action;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Exception\LocalizedException;
-use Perspective\AiCustomizationRequests\Model\CustomizationRequest;
 use Perspective\AiCustomizationRequests\Model\CustomizationRequestFactory;
-use Perspective\AiCustomizationRequests\Model\CustomizationRequestService;
-use Perspective\AiCustomizationRequests\Model\Email\CustomerNotifier;
 use Perspective\AiCustomizationRequests\Model\ResourceModel\CustomizationRequest as RequestResource;
-use Perspective\AiCustomizationRequests\Model\Workflow\QuoteDraftService;
+use Perspective\AiCustomizationRequests\Model\Workflow\CustomizationApprovalService;
 
-class Approve extends Action
+class Approve extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Perspective_AiCustomizationRequests::approve';
 
@@ -21,9 +19,7 @@ class Approve extends Action
         Action\Context $context,
         private readonly CustomizationRequestFactory $requestFactory,
         private readonly RequestResource $requestResource,
-        private readonly CustomizationRequestService $customizationRequestService,
-        private readonly QuoteDraftService $quoteDraftService,
-        private readonly CustomerNotifier $customerNotifier
+        private readonly CustomizationApprovalService $approvalService
     ) {
         parent::__construct($context);
     }
@@ -34,23 +30,7 @@ class Approve extends Action
         try {
             $request = $this->loadRequest();
             $note = trim((string)$this->getRequest()->getParam('approval_notes'));
-            $request = $this->quoteDraftService->createForRequest($request);
-            $request->addData([
-                'status' => CustomizationRequest::STATUS_APPROVED,
-                'approved_by_user_id' => (int)$this->_auth->getUser()->getId(),
-                'approval_notes' => $note ?: null,
-            ]);
-            $this->requestResource->save($request);
-            $this->customizationRequestService->addHistory(
-                $request,
-                'admin',
-                (int)$this->_auth->getUser()->getId(),
-                'approved',
-                $note
-            );
-            $this->customerNotifier->sendApproved($request);
-            $request->setData('status', CustomizationRequest::STATUS_QUOTE_SENT);
-            $this->requestResource->save($request);
+            $this->approvalService->approve($request, (int)$this->_auth->getUser()->getId(), $note ?: null);
             $this->messageManager->addSuccessMessage(__('The request has been approved and emailed.'));
         } catch (\Throwable $exception) {
             $this->messageManager->addErrorMessage($exception->getMessage());

@@ -118,8 +118,8 @@ class AgentLoop
             'Recommend only products returned by tools. Do not invent catalog data.',
             'When a shopper asks for product customization, collect the base product and requested changes.',
             'For guests, make sure you have an email before creating a customization request.',
-            'Use managed tools for search, customer email capture, request creation, draft product creation, draft quote creation, and admin notifications.',
-            'Only create draft product and draft quote once the customization request is specific enough.',
+            'Use managed tools only for search, product context, email capture, and request submission.',
+            'Never promise a price, approval, product creation, or checkout. Submitted requests are reviewed by an administrator.',
             'Current session request_uid: ' . $requestUid,
             'Current known customer_email: ' . $customerEmail,
         ]);
@@ -135,4 +135,5 @@ class AgentLoop
 
         return is_array($decoded) ? $decoded : [];
     }
+
 }
