@@ -72,7 +72,7 @@ class ChatSessionService
         return $session;
     }
 
-    public function attachCustomerEmail(ChatSession $session, string $email): void
+    public function attachCustomerEmail(ChatSession $session, ?string $email): void
     {
         $session->setData('customer_email', $email);
         $this->chatSessionResource->save($session);
@@ -85,7 +85,8 @@ class ChatSessionService
         string $messageType = 'text',
         array $productMentions = [],
         ?string $modelName = null,
-        ?string $clientMessageId = null
+        ?string $clientMessageId = null,
+        ?array $pageContext = null
     ): ChatMessage {
         /** @var ChatMessage $message */
         $message = $this->chatMessageFactory->create();
@@ -96,6 +97,7 @@ class ChatSessionService
             'client_message_id' => $clientMessageId,
             'content' => $content,
             'product_mentions_json' => $productMentions ? $this->json->serialize($productMentions) : null,
+            'page_context_json' => $pageContext ? $this->json->serialize($pageContext) : null,
             'model_name' => $modelName,
         ]);
         $this->chatMessageResource->save($message);
@@ -113,12 +115,13 @@ class ChatSessionService
         return $collection->getItems();
     }
 
-    public function formatSession(ChatSession $session, ?CustomizationRequest $request = null, ?string $resumeToken = null): array
+    public function formatSession(ChatSession $session, ?CustomizationRequest $request = null, ?string $resumeToken = null, ?bool $emailRequired = null): array
     {
         return [
             'session_uid' => (string)$session->getData('session_uid'),
             'resume_token' => $resumeToken,
             'request_uid' => $request?->getData('request_uid'),
+            'email_required' => $emailRequired ?? !(bool)$session->getData('customer_email'),
             'messages' => array_map([$this, 'formatMessage'], $this->getMessages($session)),
         ];
     }
@@ -132,11 +135,28 @@ class ChatSessionService
             'product_mentions' => array_map(static function (array $mention): array {
                 return [
                     'sku' => (string)($mention['sku'] ?? ''),
-                    'selected' => false,
+                    'selected' => (bool)($mention['selected'] ?? false),
                 ];
-            }, $this->decodeJsonArray($message->getData('product_mentions_json'))),
+            }, $this->getProductMentions($message)),
             'created_at' => (string)$message->getData('created_at'),
         ];
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    public function getProductMentions(ChatMessage $message): array
+    {
+        return array_values(array_filter(
+            $this->decodeJsonArray($message->getData('product_mentions_json')),
+            'is_array'
+        ));
+    }
+
+    /** @return array<string, mixed>|null */
+    public function getPageContext(ChatMessage $message): ?array
+    {
+        $context = $this->decodeJsonArray($message->getData('page_context_json'));
+
+        return $context !== [] && !array_is_list($context) ? $context : null;
     }
 
     private function decodeJsonArray(?string $value): array

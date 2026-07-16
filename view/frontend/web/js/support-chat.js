@@ -192,6 +192,7 @@ define(['Perspective_AiCustomizationRequests/js/chat-service'], function (chatSe
         var credentials = readCredentials(storageKey);
         var messages = [];
         var selectedProduct = null;
+        var emailRequired = false;
         var isReady = false;
         var isSending = false;
 
@@ -259,6 +260,11 @@ define(['Perspective_AiCustomizationRequests/js/chat-service'], function (chatSe
         var contextBar = createElement('div', 'perspective-ai-chat__context');
         contextBar.hidden = true;
         var form = createElement('form', 'perspective-ai-chat__form');
+        var guestEmail = createElement('input', 'perspective-ai-chat__email');
+        guestEmail.type = 'email';
+        guestEmail.placeholder = 'Email address';
+        guestEmail.autocomplete = 'email';
+        guestEmail.hidden = true;
         var input = createElement('textarea', 'perspective-ai-chat__input');
         input.rows = 1;
         input.placeholder = copy.inputPlaceholder;
@@ -268,6 +274,7 @@ define(['Perspective_AiCustomizationRequests/js/chat-service'], function (chatSe
         send.type = 'submit';
         send.disabled = true;
         var helper = createElement('p', 'perspective-ai-chat__helper', copy.helper);
+        form.appendChild(guestEmail);
         form.appendChild(input);
         form.appendChild(send);
         composer.appendChild(contextBar);
@@ -288,8 +295,11 @@ define(['Perspective_AiCustomizationRequests/js/chat-service'], function (chatSe
 
         function setReady(ready) {
             isReady = ready;
-            input.disabled = !ready || isSending;
-            send.disabled = !ready || isSending || input.value.trim() === '';
+            guestEmail.hidden = !emailRequired;
+            guestEmail.required = emailRequired;
+            guestEmail.disabled = !ready || isSending || !emailRequired;
+            input.disabled = !ready || isSending || emailRequired && !guestEmail.validity.valid;
+            send.disabled = !ready || isSending || input.value.trim() === '' || emailRequired && !guestEmail.validity.valid;
             history.setAttribute('aria-busy', ready ? 'false' : 'true');
             setStatus(ready ? copy.ready : copy.connecting, ready ? 'ready' : 'loading');
         }
@@ -297,7 +307,7 @@ define(['Perspective_AiCustomizationRequests/js/chat-service'], function (chatSe
         function resizeInput() {
             input.style.height = 'auto';
             input.style.height = Math.min(input.scrollHeight, 112) + 'px';
-            send.disabled = !isReady || isSending || input.value.trim() === '';
+            send.disabled = !isReady || isSending || input.value.trim() === '' || emailRequired && !guestEmail.validity.valid;
         }
 
         function choosePrompt(promptText) {
@@ -433,6 +443,7 @@ define(['Perspective_AiCustomizationRequests/js/chat-service'], function (chatSe
                 credentials = {session_uid: session.session_uid, resume_token: session.resume_token};
                 window.localStorage.setItem(storageKey, JSON.stringify(credentials));
             }
+            emailRequired = !!session.email_required;
             messages = session.messages || [];
             setReady(true);
             renderConversation();
@@ -487,7 +498,7 @@ define(['Perspective_AiCustomizationRequests/js/chat-service'], function (chatSe
 
         function submitMessage() {
             var message = input.value.trim();
-            if (!message || !credentials || isSending) {
+            if (!message || !credentials || isSending || emailRequired && !guestEmail.validity.valid) {
                 return;
             }
             isSending = true;
@@ -504,9 +515,11 @@ define(['Perspective_AiCustomizationRequests/js/chat-service'], function (chatSe
                 config.graphqlEndpoint,
                 credentials,
                 message,
-                selectedProduct ? selectedProduct.product.sku : null
+                selectedProduct ? selectedProduct.product.sku : null,
+                window.location.href,
+                emailRequired ? guestEmail.value.trim() : null
             ).then(function (payload) {
-                messages = payload.session.messages || [];
+                storeSession(payload.session);
                 selectedProduct = null;
                 contextBar.hidden = true;
                 contextBar.replaceChildren();
@@ -519,7 +532,8 @@ define(['Perspective_AiCustomizationRequests/js/chat-service'], function (chatSe
                 setStatus(copy.messageFailed, 'error');
             }).finally(function () {
                 isSending = false;
-                input.disabled = false;
+                guestEmail.disabled = !emailRequired;
+                input.disabled = emailRequired && !guestEmail.validity.valid;
                 resizeInput();
                 input.focus();
             });
@@ -529,6 +543,7 @@ define(['Perspective_AiCustomizationRequests/js/chat-service'], function (chatSe
         clear.addEventListener('click', clearSession);
         close.addEventListener('click', closePanel);
         input.addEventListener('input', resizeInput);
+        guestEmail.addEventListener('input', function () { setReady(isReady); });
         input.addEventListener('keydown', function (event) {
             if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
                 event.preventDefault();

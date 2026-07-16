@@ -15,7 +15,7 @@ class Index extends Action
         /** @var \Magento\Framework\View\Result\Page $resultPage */
         $resultPage = $this->resultFactory->create(ResultFactory::TYPE_PAGE);
         $resultPage->setActiveMenu('Perspective_AiCustomizationRequests::requests');
-        $resultPage->getConfig()->getTitle()->prepend(__('AI Requests'));
+        $resultPage->getConfig()->getTitle()->prepend(__('Customization Requests'));
 
         return $resultPage;
     }

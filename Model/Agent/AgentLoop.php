@@ -28,7 +28,6 @@ class AgentLoop
         $context = new AgentContext(
             $session,
             $customerId,
-            $session->getData('customer_email') ? (string)$session->getData('customer_email') : null,
             $activeRequest
         );
 
@@ -40,9 +39,18 @@ class AgentLoop
         ];
 
         foreach ($this->chatSessionService->getMessages($session) as $message) {
+            $role = (string)$message->getData('role');
             $messages[] = [
-                'role' => (string)$message->getData('role'),
-                'content' => (string)$message->getData('content'),
+                'role' => $role,
+                'content' => $this->appendSelectedProductContext(
+                    $this->appendPageContext(
+                        (string)$message->getData('content'),
+                        $role,
+                        $this->chatSessionService->getPageContext($message)
+                    ),
+                    $role,
+                    $this->chatSessionService->getProductMentions($message)
+                ),
             ];
         }
 
@@ -111,18 +119,70 @@ class AgentLoop
     private function buildSystemPrompt(AgentContext $context): string
     {
         $requestUid = $context->getRequest()?->getData('request_uid') ?: 'none';
-        $customerEmail = $context->getCustomerEmail() ?: 'missing';
-
         return implode("\n", [
             'You are the Perspective storefront shopping assistant.',
             'Recommend only products returned by tools. Do not invent catalog data.',
             'When a shopper asks for product customization, collect the base product and requested changes.',
-            'For guests, make sure you have an email before creating a customization request.',
-            'Use managed tools only for search, product context, email capture, and request submission.',
+            'Customer contact details are handled by the storefront and are never part of this conversation.',
+            'Use managed tools only for search, product context, and request submission.',
             'Never promise a price, approval, product creation, or checkout. Submitted requests are reviewed by an administrator.',
             'Current session request_uid: ' . $requestUid,
-            'Current known customer_email: ' . $customerEmail,
         ]);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $productMentions
+     */
+    private function appendSelectedProductContext(string $content, string $role, array $productMentions): string
+    {
+        if ($role !== 'user') {
+            return $content;
+        }
+
+        $selectedSkus = array_values(array_filter(array_map(
+            static fn(array $mention): string => !empty($mention['selected']) ? trim((string)($mention['sku'] ?? '')) : '',
+            $productMentions
+        )));
+        if ($selectedSkus === []) {
+            return $content;
+        }
+
+        return $content . "\n\n[The shopper selected catalog product SKU: " . implode(', ', $selectedSkus)
+            . '. Use it as the base product for this request. Do not ask for its SKU, name, or link unless the shopper explicitly changes the selection.]';
+    }
+
+    /** @param array<string, mixed>|null $pageContext */
+    private function appendPageContext(string $content, string $role, ?array $pageContext): string
+    {
+        if ($role !== 'user' || !$pageContext) {
+            return $content;
+        }
+
+        $entityType = trim((string)($pageContext['entity_type'] ?? ''));
+        $entityId = (int)($pageContext['entity_id'] ?? 0);
+        $requestPath = trim((string)($pageContext['request_path'] ?? ''));
+        if ($entityType === '' || $entityId <= 0 || $requestPath === '') {
+            return $content;
+        }
+
+        return $content . "\n\n[The shopper is currently viewing storefront page '" . $requestPath
+            . "', resolved as " . $entityType . ' entity ID ' . $entityId
+            . $this->formatCurrentProductContext($pageContext)
+            . '. Use this page context to understand references such as “this” or “here”.]';
+    }
+
+    /** @param array<string, mixed> $pageContext */
+    private function formatCurrentProductContext(array $pageContext): string
+    {
+        $sku = trim((string)($pageContext['product_sku'] ?? ''));
+        if ($sku === '') {
+            return '';
+        }
+
+        $name = trim((string)($pageContext['product_name'] ?? ''));
+
+        return '; product SKU: ' . $sku . ($name === '' ? '' : '; product name: ' . $name)
+            . '. When the shopper refers to this product page, use this SKU as the base product unless they selected another product';
     }
 
     private function decodeArguments(string $rawArguments): array

@@ -3,7 +3,7 @@
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
     <menu>
         <add id="Perspective_AiCustomizationRequests::requests"
-             title="AI Requests"
+             title="Customization Requests"
              module="Perspective_AiCustomizationRequests"
              sortOrder="90"
              parent="Magento_Backend::content"

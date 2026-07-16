@@ -29,7 +29,7 @@ class Decline extends Action implements HttpPostActionInterface
         $resultRedirect = $this->resultRedirectFactory->create();
         try {
             $request = $this->loadRequest();
-            $reason = trim((string)$this->getRequest()->getParam('decline_reason'));
+            $reason = trim((string)$this->getRequest()->getParam('decision_note'));
             if ($reason === '') {
                 throw new LocalizedException(__('Decline reason is required.'));
             }

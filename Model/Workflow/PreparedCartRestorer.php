@@ -41,6 +41,7 @@ class PreparedCartRestorer
         }
         $quote->collectTotals();
         $this->cartRepository->save($quote);
+        $this->checkoutSession->setQuoteId((int)$quote->getId());
         $request->setData('restore_consumed_at', gmdate('Y-m-d H:i:s'));
         $this->requestService->save($request);
 

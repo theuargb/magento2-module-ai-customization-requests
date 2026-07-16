@@ -616,6 +616,17 @@
 #perspective-ai-chat-root .perspective-ai-chat__input:focus { border-color: var(--chat-blue) !important; box-shadow: 0 0 0 3px rgba(20, 99, 217, .12) !important; }
 #perspective-ai-chat-root .perspective-ai-chat__input:disabled { background: var(--chat-canvas) !important; color: var(--chat-muted) !important; }
 
+#perspective-ai-chat-root .perspective-ai-chat__email {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 42px;
+    padding: 0 12px !important;
+    border: 1px solid var(--chat-line) !important;
+    border-radius: 10px !important;
+    background: var(--chat-surface) !important;
+    color: var(--chat-ink) !important;
+}
+
 #perspective-ai-chat-root .perspective-ai-chat__send {
     width: auto !important;
     min-width: 62px !important;

@@ -18,18 +18,20 @@ define([], function () {
 
     return {
         startSession: function (endpoint) {
-            return request(endpoint, 'mutation { startAiChatSession { session_uid resume_token request_uid messages { role content message_type created_at product_mentions { selected product { sku name small_image { url } url_rewrites { url } } } } } }').then(function (data) { return data.startAiChatSession; });
+            return request(endpoint, 'mutation { startAiChatSession { session_uid resume_token request_uid email_required messages { role content message_type created_at product_mentions { selected product { sku name small_image { url } url_rewrites { url } } } } } }').then(function (data) { return data.startAiChatSession; });
         },
         resumeSession: function (endpoint, credentials) {
-            return request(endpoint, 'query Resume($input: ResumeAiChatSessionInput!) { resumeAiChatSession(input: $input) { session_uid request_uid messages { role content message_type created_at product_mentions { selected product { sku name small_image { url } url_rewrites { url } } } } } }', {input: credentials}).then(function (data) { return data.resumeAiChatSession; });
+            return request(endpoint, 'query Resume($input: ResumeAiChatSessionInput!) { resumeAiChatSession(input: $input) { session_uid request_uid email_required messages { role content message_type created_at product_mentions { selected product { sku name small_image { url } url_rewrites { url } } } } } }', {input: credentials}).then(function (data) { return data.resumeAiChatSession; });
         },
-        sendMessage: function (endpoint, credentials, message, selectedSku) {
-            return request(endpoint, 'mutation Send($input: SendAiChatMessageInput!) { sendAiChatMessage(input: $input) { request_uid session { session_uid request_uid messages { role content message_type created_at product_mentions { selected product { sku name small_image { url } url_rewrites { url } } } } } assistant_message { role content message_type created_at product_mentions { selected product { sku name small_image { url } url_rewrites { url } } } } } }', {input: {
+        sendMessage: function (endpoint, credentials, message, selectedSku, currentPageUrl, guestEmail) {
+            return request(endpoint, 'mutation Send($input: SendAiChatMessageInput!) { sendAiChatMessage(input: $input) { request_uid session { session_uid request_uid email_required messages { role content message_type created_at product_mentions { selected product { sku name small_image { url } url_rewrites { url } } } } } assistant_message { role content message_type created_at product_mentions { selected product { sku name small_image { url } url_rewrites { url } } } } } }', {input: {
                 session_uid: credentials.session_uid,
                 resume_token: credentials.resume_token,
                 client_message_id: String(Date.now()) + '-' + Math.random().toString(16).slice(2),
                 message: message,
-                selected_product_sku: selectedSku || null
+                selected_product_sku: selectedSku || null,
+                current_page_url: currentPageUrl || null,
+                guest_email: guestEmail || null
             }}).then(function (data) { return data.sendAiChatMessage; });
         },
         restorePreparedCart: function (endpoint, token) {

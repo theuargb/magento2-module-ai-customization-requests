@@ -29,7 +29,7 @@ class Approve extends Action implements HttpPostActionInterface
         $resultRedirect = $this->resultRedirectFactory->create();
         try {
             $request = $this->loadRequest();
-            $note = trim((string)$this->getRequest()->getParam('approval_notes'));
+            $note = trim((string)$this->getRequest()->getParam('decision_note'));
             $this->approvalService->approve($request, (int)$this->_auth->getUser()->getId(), $note ?: null);
             $this->messageManager->addSuccessMessage(__('The request has been approved and emailed.'));
         } catch (\Throwable $exception) {

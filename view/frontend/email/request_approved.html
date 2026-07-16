@@ -1,8 +1,8 @@
 <!--@subject {{trans "Your customization request has been approved"}} @-->
 <!--@vars {
-"var request_uid":"Request UID",
+"var request_name":"Request Name",
 "var restore_url":"Restore URL"
 } @-->
-<p>{{trans "Your customization request %1 has been approved." request_uid}}</p>
+<p>{{trans "Your customization request %request_name has been approved." request_name=$request_name}}</p>
 <p>{{trans "Use this link to restore the prepared cart:"}}</p>
 <p><a href="{{var restore_url}}">{{var restore_url}}</a></p>

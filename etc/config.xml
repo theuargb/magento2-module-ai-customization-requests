@@ -12,7 +12,7 @@
                 <close_label>Close assistant</close_label>
                 <clear_label>New chat</clear_label>
                 <input_placeholder>Describe what you are looking for…</input_placeholder>
-                <send_label>Send</send_label>
+                <send_label>➤</send_label>
                 <helper_text>Enter to send · Shift + Enter for a new line</helper_text>
                 <user_label>You</user_label>
                 <context_label>Asking about</context_label>

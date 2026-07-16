@@ -3,16 +3,39 @@
 $request = $block->getRequestModel();
 $changes = $block->decodeJson($request->getData('requested_changes_json'));
 $isPending = $request->getData('status') === \Perspective\AiCustomizationRequests\Model\CustomizationRequest::STATUS_PENDING_REVIEW;
+$customerUrl = $block->getCustomerUrl();
+$baseProductUrl = $block->getBaseProductUrl();
+$approvedProductUrl = $block->getApprovedProductUrl();
 ?>
 <div class="admin__page-section">
     <div class="admin__page-section-title"><span class="title"><?= $block->escapeHtml(__('Customization Request')) ?></span></div>
     <div class="admin__page-section-content">
         <table class="admin__table-secondary"><tbody>
         <tr><th><?= $block->escapeHtml(__('Status')) ?></th><td><strong><?= $block->escapeHtml((string)$request->getData('status')) ?></strong></td></tr>
-        <tr><th><?= $block->escapeHtml(__('Customer Email')) ?></th><td><?= $block->escapeHtml((string)$request->getData('customer_email')) ?></td></tr>
-        <tr><th><?= $block->escapeHtml(__('Base Product SKU')) ?></th><td><?= $block->escapeHtml((string)$request->getData('base_product_sku')) ?></td></tr>
+        <tr><th><?= $block->escapeHtml(__('Customer Email')) ?></th><td>
+            <?php if ($customerUrl): ?>
+                <a href="<?= $block->escapeUrl($customerUrl) ?>" target="_blank" rel="noopener noreferrer"><?= $block->escapeHtml((string)$request->getData('customer_email')) ?></a>
+            <?php else: ?>
+                <?= $block->escapeHtml((string)$request->getData('customer_email')) ?> <?= $block->escapeHtml(__('(Guest)')) ?>
+            <?php endif; ?>
+        </td></tr>
+        <tr><th><?= $block->escapeHtml(__('Base Product SKU')) ?></th><td>
+            <?php if ($baseProductUrl): ?>
+                <a href="<?= $block->escapeUrl($baseProductUrl) ?>" target="_blank" rel="noopener noreferrer"><?= $block->escapeHtml((string)$request->getData('base_product_sku')) ?></a>
+            <?php else: ?>
+                <?= $block->escapeHtml((string)$request->getData('base_product_sku')) ?>
+            <?php endif; ?>
+        </td></tr>
         <tr><th><?= $block->escapeHtml(__('Request')) ?></th><td><?= $block->escapeHtml((string)$request->getData('summary')) ?></td></tr>
-        <?php if ($request->getData('custom_product_sku')): ?><tr><th><?= $block->escapeHtml(__('Approved SKU')) ?></th><td><?= $block->escapeHtml((string)$request->getData('custom_product_sku')) ?></td></tr><?php endif; ?>
+        <?php if ($request->getData('custom_product_sku')): ?>
+            <tr><th><?= $block->escapeHtml(__('Approved SKU')) ?></th><td>
+                <?php if ($approvedProductUrl): ?>
+                    <a href="<?= $block->escapeUrl($approvedProductUrl) ?>" target="_blank" rel="noopener noreferrer"><?= $block->escapeHtml((string)$request->getData('custom_product_sku')) ?></a>
+                <?php else: ?>
+                    <?= $block->escapeHtml((string)$request->getData('custom_product_sku')) ?>
+                <?php endif; ?>
+            </td></tr>
+        <?php endif; ?>
         </tbody></table>
     </div>
 </div>
@@ -26,15 +49,12 @@ $isPending = $request->getData('status') === \Perspective\AiCustomizationRequest
 <div class="admin__page-section"><div class="admin__page-section-title"><span class="title"><?= $block->escapeHtml(__('Decision')) ?></span></div><div class="admin__page-section-content">
     <form method="post" action="<?= $block->escapeUrl($block->getApproveUrl()) ?>" class="admin__field">
         <input type="hidden" name="form_key" value="<?= $block->escapeHtmlAttr($block->getFormKey()) ?>">
-        <label class="admin__field-label" for="approval_notes"><span><?= $block->escapeHtml(__('Approval Notes')) ?></span></label>
-        <div class="admin__field-control"><textarea class="admin__control-textarea" name="approval_notes" id="approval_notes"></textarea></div>
-        <button type="submit" class="action-primary"><span><?= $block->escapeHtml(__('Approve and Send')) ?></span></button>
-    </form>
-    <form method="post" action="<?= $block->escapeUrl($block->getDeclineUrl()) ?>" class="admin__field">
-        <input type="hidden" name="form_key" value="<?= $block->escapeHtmlAttr($block->getFormKey()) ?>">
-        <label class="admin__field-label" for="decline_reason"><span><?= $block->escapeHtml(__('Decline Reason')) ?></span></label>
-        <div class="admin__field-control"><textarea class="admin__control-textarea" name="decline_reason" id="decline_reason" required></textarea></div>
-        <button type="submit" class="action-secondary"><span><?= $block->escapeHtml(__('Decline')) ?></span></button>
+        <label class="admin__field-label" for="decision_note"><span><?= $block->escapeHtml(__('Decision Note')) ?></span></label>
+        <div class="admin__field-control"><textarea class="admin__control-textarea" name="decision_note" id="decision_note"></textarea></div>
+        <div class="actions">
+            <button type="submit" class="action-primary"><span><?= $block->escapeHtml(__('Approve and Send')) ?></span></button>
+            <button type="submit" class="action-secondary" formaction="<?= $block->escapeUrl($block->getDeclineUrl()) ?>"><span><?= $block->escapeHtml(__('Decline')) ?></span></button>
+        </div>
     </form>
 </div></div>
 <?php endif; ?>

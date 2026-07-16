@@ -9,6 +9,7 @@ use Magento\Catalog\Model\ProductFactory;
 use Magento\Catalog\Model\Product\Type;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Perspective\AiCustomizationRequests\Model\CustomizationRequest;
 
 class CustomizationProductCreator
@@ -31,13 +32,23 @@ class CustomizationProductCreator
             throw new LocalizedException(__('Only simple products can be customized.'));
         }
 
+        $customSku = sprintf('%s-CUSTOM-%s', $baseProduct->getSku(), $request->getId());
+        try {
+            $existingProduct = $this->productRepository->get($customSku, false, $storeId, true);
+        } catch (NoSuchEntityException) {
+            $existingProduct = null;
+        }
+        if ($existingProduct) {
+            return (int)$existingProduct->getId();
+        }
+
         $product = $this->productFactory->create();
         $product->setTypeId(Type::TYPE_SIMPLE);
         $product->setAttributeSetId((int)$baseProduct->getAttributeSetId());
         $product->setStoreId($storeId);
         $product->setWebsiteIds($baseProduct->getWebsiteIds());
         $product->setCategoryIds($baseProduct->getCategoryIds());
-        $product->setSku(sprintf('%s-CUSTOM-%s', $baseProduct->getSku(), $request->getId()));
+        $product->setSku($customSku);
         $product->setName((string)$request->getData('title'));
         $product->setPrice((float)$baseProduct->getPrice());
         $product->setTaxClassId((int)$baseProduct->getTaxClassId());
@@ -51,7 +62,7 @@ class CustomizationProductCreator
             'is_in_stock' => 1,
             'qty' => 1,
         ]);
-        $this->productRepository->save($product);
+        $product = $this->productRepository->save($product);
 
         return (int)$product->getId();
     }

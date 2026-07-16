@@ -7,18 +7,23 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Perspective\AiCustomizationRequests\Model\Agent\AgentContext;
 use Perspective\AiCustomizationRequests\Model\CustomizationRequestService;
+use Perspective\AiCustomizationRequests\Model\Customer\CustomerEmailResolver;
 use Perspective\AiCustomizationRequests\Model\Workflow\AdminNotifier;
 
-class UpsertCustomizationRequestTool implements ToolInterface
+class CreateCustomizationRequestTool implements ToolInterface
 {
     public function __construct(
         private readonly CustomizationRequestService $customizationRequestService,
         private readonly ProductRepositoryInterface $productRepository,
-        private readonly AdminNotifier $adminNotifier
+        private readonly AdminNotifier $adminNotifier,
+        private readonly CustomerEmailResolver $customerEmailResolver
     ) {
     }
 
-    public function getName(): string { return 'save_customization_request'; }
+    public function getName(): string
+    {
+        return 'create_customization_request';
+    }
 
     public function getDescription(): string
     {
@@ -42,7 +47,10 @@ class UpsertCustomizationRequestTool implements ToolInterface
 
     public function execute(array $arguments, AgentContext $context): array
     {
-        $email = $context->getCustomerEmail();
+        $email = $this->customerEmailResolver->get(
+            $context->getCustomerId(),
+            (int)$context->getSession()->getData('store_id')
+        );
         $sku = trim((string)($arguments['base_product_sku'] ?? ''));
         $title = trim((string)($arguments['title'] ?? ''));
         $summary = trim((string)($arguments['summary'] ?? ''));
@@ -57,8 +65,7 @@ class UpsertCustomizationRequestTool implements ToolInterface
             (int)$context->getSession()->getData('store_id'),
             true
         );
-        $isNew = $context->getRequest() === null;
-        $request = $this->customizationRequestService->createOrUpdateDraft(
+        $request = $this->customizationRequestService->create(
             $context->getSession(),
             [
                 'title' => $title,
@@ -71,9 +78,7 @@ class UpsertCustomizationRequestTool implements ToolInterface
             $email
         );
         $context->setRequest($request);
-        if ($isNew) {
-            $this->adminNotifier->notifyNewRequest($request);
-        }
+        $this->adminNotifier->notifyNewRequest($request);
 
         return ['request_uid' => (string)$request->getData('request_uid'), 'status' => (string)$request->getData('status')];
     }

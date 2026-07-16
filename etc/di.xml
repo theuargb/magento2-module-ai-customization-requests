@@ -6,8 +6,7 @@
             <argument name="tools" xsi:type="array">
                 <item name="search_catalog" xsi:type="object">Perspective\AiCustomizationRequests\Model\Agent\Tool\SearchCatalogTool</item>
                 <item name="get_product_context" xsi:type="object">Perspective\AiCustomizationRequests\Model\Agent\Tool\GetProductContextTool</item>
-                <item name="save_customer_email" xsi:type="object">Perspective\AiCustomizationRequests\Model\Agent\Tool\SaveCustomerEmailTool</item>
-                <item name="upsert_customization_request" xsi:type="object">Perspective\AiCustomizationRequests\Model\Agent\Tool\UpsertCustomizationRequestTool</item>
+                <item name="create_customization_request" xsi:type="object">Perspective\AiCustomizationRequests\Model\Agent\Tool\CreateCustomizationRequestTool</item>
             </argument>
         </arguments>
     </type>

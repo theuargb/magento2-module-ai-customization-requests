@@ -32,7 +32,7 @@ class Widget extends Template
         return $this->json->serialize([
             'widget' => $widget,
             'graphqlEndpoint' => $this->getUrl('graphql'),
-            'restoreToken' => $this->getRequest()->getParam('ai_quote'),
+            'restoreToken' => $this->getData('restore_token'),
         ]);
     }
 }

@@ -43,17 +43,14 @@ class CustomizationRequestService
         return $request->getId() ? $request : null;
     }
 
-    public function createOrUpdateDraft(ChatSession $session, array $payload, ?int $customerId, string $customerEmail): CustomizationRequest
+    public function create(ChatSession $session, array $payload, ?int $customerId, string $customerEmail): CustomizationRequest
     {
-        $request = $this->getLatestForSession((int)$session->getId()) ?? $this->requestFactory->create();
-        $isNew = !$request->getId();
-        if ($isNew) {
-            $request->setData([
-                'request_uid' => bin2hex(random_bytes(16)),
-                'session_id' => (int)$session->getId(),
-                'store_id' => (int)$session->getData('store_id'),
-            ]);
-        }
+        $request = $this->requestFactory->create();
+        $request->setData([
+            'request_uid' => bin2hex(random_bytes(16)),
+            'session_id' => (int)$session->getId(),
+            'store_id' => (int)$session->getData('store_id'),
+        ]);
 
         $request->addData([
             'customer_id' => $customerId,
@@ -66,7 +63,7 @@ class CustomizationRequestService
             'status' => CustomizationRequest::STATUS_PENDING_REVIEW,
         ]);
         $this->requestResource->save($request);
-        $this->addHistory($request, 'agent', null, $isNew ? 'submitted' : 'updated', $request->getData('summary'));
+        $this->addHistory($request, 'agent', null, 'submitted', $request->getData('summary'));
 
         return $request;
     }

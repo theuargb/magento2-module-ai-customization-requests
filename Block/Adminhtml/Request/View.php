@@ -48,6 +48,33 @@ class View extends Template
         ]);
     }
 
+    public function getCustomerUrl(): ?string
+    {
+        $customerId = (int)$this->getRequestModel()->getData('customer_id');
+
+        return $customerId > 0
+            ? $this->getUrl('customer/index/edit', ['id' => $customerId])
+            : null;
+    }
+
+    public function getBaseProductUrl(): ?string
+    {
+        $productId = (int)$this->getRequestModel()->getData('base_product_id');
+
+        return $productId > 0
+            ? $this->getUrl('catalog/product/edit', ['id' => $productId])
+            : null;
+    }
+
+    public function getApprovedProductUrl(): ?string
+    {
+        $productId = (int)$this->getRequestModel()->getData('custom_product_id');
+
+        return $productId > 0
+            ? $this->getUrl('catalog/product/edit', ['id' => $productId])
+            : null;
+    }
+
     public function getFormKey(): string
     {
         return $this->formKey->getFormKey();

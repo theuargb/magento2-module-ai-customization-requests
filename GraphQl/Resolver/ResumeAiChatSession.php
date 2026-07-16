@@ -9,13 +9,15 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Store\Model\StoreManagerInterface;
 use Perspective\AiCustomizationRequests\Model\ChatSessionService;
 use Perspective\AiCustomizationRequests\Model\CustomizationRequestService;
+use Perspective\AiCustomizationRequests\Model\Customer\CustomerEmailResolver;
 
 class ResumeAiChatSession implements ResolverInterface
 {
     public function __construct(
         private readonly ChatSessionService $chatSessionService,
         private readonly CustomizationRequestService $customizationRequestService,
-        private readonly StoreManagerInterface $storeManager
+        private readonly StoreManagerInterface $storeManager,
+        private readonly CustomerEmailResolver $customerEmailResolver
     ) {
     }
 
@@ -29,9 +31,17 @@ class ResumeAiChatSession implements ResolverInterface
             (int)$context->getUserId() ?: null
         );
 
+        $customerEmail = $this->customerEmailResolver->get(
+            (int)$context->getUserId() ?: null,
+            (int)$this->storeManager->getStore()->getId()
+        );
+        $this->chatSessionService->attachCustomerEmail($session, $customerEmail);
+
         return $this->chatSessionService->formatSession(
             $session,
-            $this->customizationRequestService->getLatestForSession((int)$session->getId())
+            $this->customizationRequestService->getLatestForSession((int)$session->getId()),
+            null,
+            !$customerEmail
         );
     }
 }

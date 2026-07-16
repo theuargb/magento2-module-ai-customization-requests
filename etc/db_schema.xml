@@ -35,6 +35,7 @@
         <column xsi:type="varchar" name="client_message_id" nullable="true" length="64" comment="Client Message Idempotency Key"/>
         <column xsi:type="mediumtext" name="content" nullable="false" comment="Message Content"/>
         <column xsi:type="mediumtext" name="product_mentions_json" nullable="true" comment="Product Mentions JSON"/>
+        <column xsi:type="text" name="page_context_json" nullable="true" comment="Resolved Storefront Page Context JSON"/>
         <column xsi:type="varchar" name="model_name" nullable="true" length="255" comment="Model Name"/>
         <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">

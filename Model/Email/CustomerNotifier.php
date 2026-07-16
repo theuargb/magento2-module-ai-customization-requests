@@ -18,7 +18,6 @@ class CustomerNotifier
         private readonly TransportBuilder $transportBuilder,
         private readonly StateInterface $inlineTranslation,
         private readonly ModuleConfig $moduleConfig,
-        private readonly UrlInterface $urlBuilder,
         private readonly StoreManagerInterface $storeManager
     ) {
     }
@@ -26,7 +25,7 @@ class CustomerNotifier
     public function sendApproved(CustomizationRequest $request, string $restoreToken): void
     {
         $this->send($request, $this->moduleConfig->getApproveTemplate((int)$request->getData('store_id')), [
-            'request_uid' => (string)$request->getData('request_uid'),
+            'request_name' => (string)$request->getData('title'),
             'restore_url' => $this->buildRestoreUrl($request, $restoreToken),
         ]);
     }
@@ -70,9 +69,9 @@ class CustomerNotifier
 
     private function buildRestoreUrl(CustomizationRequest $request, string $restoreToken): string
     {
-        return $this->urlBuilder->getUrl('', [
-            '_scope' => $request->getData('store_id') ?: $this->storeManager->getDefaultStoreView()->getId(),
-            '_query' => ['ai_quote' => $restoreToken],
-        ]);
+        $storeId = (int)$request->getData('store_id') ?: (int)$this->storeManager->getDefaultStoreView()->getId();
+
+        return rtrim($this->storeManager->getStore($storeId)->getBaseUrl(UrlInterface::URL_TYPE_LINK), '/')
+            . '/ai-customization/restore/index/token/' . rawurlencode($restoreToken) . '/';
     }
 }

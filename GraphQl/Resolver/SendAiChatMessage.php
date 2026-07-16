@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Perspective\AiCustomizationRequests\GraphQl\Resolver;
 
-use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
@@ -13,6 +12,8 @@ use Perspective\AiCustomizationRequests\Model\Agent\AgentLoop;
 use Perspective\AiCustomizationRequests\Model\ChatSessionService;
 use Perspective\AiCustomizationRequests\Model\Config\ModuleConfig;
 use Perspective\AiCustomizationRequests\Model\CustomizationRequestService;
+use Perspective\AiCustomizationRequests\Model\Customer\CustomerEmailResolver;
+use Perspective\AiCustomizationRequests\Model\UrlRewrite\PageContextResolver;
 
 class SendAiChatMessage implements ResolverInterface
 {
@@ -21,8 +22,9 @@ class SendAiChatMessage implements ResolverInterface
         private readonly ChatSessionService $chatSessionService,
         private readonly CustomizationRequestService $customizationRequestService,
         private readonly AgentLoop $agentLoop,
-        private readonly CustomerRepositoryInterface $customerRepository,
-        private readonly StoreManagerInterface $storeManager
+        private readonly StoreManagerInterface $storeManager,
+        private readonly PageContextResolver $pageContextResolver,
+        private readonly CustomerEmailResolver $customerEmailResolver
     ) {
     }
 
@@ -45,18 +47,37 @@ class SendAiChatMessage implements ResolverInterface
             $storeId,
             $customerId
         );
-        if ($customerId && !$session->getData('customer_email')) {
-            $this->chatSessionService->attachCustomerEmail($session, $this->customerRepository->getById($customerId)->getEmail());
+        if ($customerId) {
+            $this->chatSessionService->attachCustomerEmail($session, $this->customerEmailResolver->get($customerId, $storeId));
+        } else {
+            $guestEmail = trim((string)($args['input']['guest_email'] ?? ''));
+            if ($guestEmail !== '') {
+                $this->customerEmailResolver->setGuestEmail($guestEmail, $storeId);
+            }
+            $cartEmail = $this->customerEmailResolver->get(null, $storeId);
+            if (!$cartEmail) {
+                throw new GraphQlInputException(__('An email address is required before starting the chat.'));
+            }
+            $this->chatSessionService->attachCustomerEmail($session, $cartEmail);
         }
 
+        $selectedProductSku = trim((string)($args['input']['selected_product_sku'] ?? ''));
+        $pageContext = $this->pageContextResolver->resolve(
+            (string)($args['input']['current_page_url'] ?? ''),
+            $storeId
+        );
         $this->chatSessionService->addMessage(
             $session,
             'user',
             $messageText,
             'text',
-            [],
+            $selectedProductSku === '' ? [] : [[
+                'sku' => $selectedProductSku,
+                'selected' => true,
+            ]],
             null,
-            (string)$args['input']['client_message_id']
+            (string)$args['input']['client_message_id'],
+            $pageContext
         );
         $result = $this->agentLoop->run($session, $customerId);
         $assistantMessageModel = $this->chatSessionService->addMessage(
@@ -69,7 +90,7 @@ class SendAiChatMessage implements ResolverInterface
         );
 
         $request = $result['request'] ?? $this->customizationRequestService->getLatestForSession((int)$session->getId());
-        $formattedSession = $this->chatSessionService->formatSession($session, $request);
+        $formattedSession = $this->chatSessionService->formatSession($session, $request, null, !(bool)$session->getData('customer_email'));
 
         return [
             'session' => $formattedSession,

@@ -27,12 +27,15 @@ input SendAiChatMessageInput {
     client_message_id: String!
     message: String!
     selected_product_sku: String
+    current_page_url: String
+    guest_email: String
 }
 
 type AiChatSession {
     session_uid: String!
     resume_token: String
     request_uid: String
+    email_required: Boolean!
     messages: [AiChatMessage!]!
 }
 
