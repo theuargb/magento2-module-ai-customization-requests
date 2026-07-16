@@ -84,7 +84,7 @@ class ProductIndexer implements ActionInterface, MviewActionInterface
                     continue;
                 }
 
-                $document = $this->productDocumentBuilder->build($product, $storeId ?: null);
+                $document = $this->productDocumentBuilder->build($product);
                 $document['embedding'] = $this->openRouterClient->embed(
                     $document['combined_text'],
                     $this->moduleConfig->getEmbeddingModel($storeId),

@@ -6,7 +6,6 @@ namespace Perspective\AiCustomizationRequests\Model\OpenSearch;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\ResourceModel\Category\CollectionFactory as CategoryCollectionFactory;
 use Magento\Eav\Model\Entity\Attribute\AbstractAttribute;
-use Perspective\AiCustomizationRequests\Model\Catalog\ProductFrontendUrlResolver;
 
 class ProductDocumentBuilder
 {
@@ -34,12 +33,11 @@ class ProductDocumentBuilder
     ];
 
     public function __construct(
-        private readonly CategoryCollectionFactory $categoryCollectionFactory,
-        private readonly ProductFrontendUrlResolver $productFrontendUrlResolver
+        private readonly CategoryCollectionFactory $categoryCollectionFactory
     ) {
     }
 
-    public function build(ProductInterface $product, ?int $storeId = null): array
+    public function build(ProductInterface $product): array
     {
         $categories = $this->getCategoryNames($product);
         $attributes = $this->extractAttributes($product);
@@ -63,7 +61,6 @@ class ProductDocumentBuilder
             'entity_id' => (int)$product->getId(),
             'sku' => (string)$product->getSku(),
             'name' => $name,
-            'url' => $this->productFrontendUrlResolver->resolve($product, $storeId) ?: '',
             'short_description' => $shortDescription,
             'description' => $description,
             'categories' => $categories,

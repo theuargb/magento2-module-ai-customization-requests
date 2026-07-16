@@ -56,6 +56,6 @@ class GetProductContextTool implements ToolInterface
             throw new LocalizedException(__('This product is not available.'));
         }
 
-        return $this->productDocumentBuilder->build($product, $storeId ?: null);
+        return $this->productDocumentBuilder->build($product);
     }
 }

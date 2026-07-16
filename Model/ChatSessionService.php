@@ -130,9 +130,10 @@ class ChatSessionService
             'content' => (string)$message->getData('content'),
             'message_type' => (string)$message->getData('message_type'),
             'product_mentions' => array_map(static function (array $mention): array {
-                unset($mention['context_token']);
-                $mention['selected'] = false;
-                return $mention;
+                return [
+                    'sku' => (string)($mention['sku'] ?? ''),
+                    'selected' => false,
+                ];
             }, $this->decodeJsonArray($message->getData('product_mentions_json'))),
             'created_at' => (string)$message->getData('created_at'),
         ];

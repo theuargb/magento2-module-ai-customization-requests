@@ -8,8 +8,6 @@ use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
 use Magento\Framework\Exception\LocalizedException;
-use Perspective\AiCustomizationRequests\Model\Catalog\ProductFrontendUrlResolver;
-use Perspective\AiCustomizationRequests\Model\Catalog\ProductImageUrlResolver;
 use Perspective\AiCustomizationRequests\Model\Config\ModuleConfig;
 use Perspective\AiCustomizationRequests\Model\OpenRouter\Client as OpenRouterClient;
 
@@ -20,8 +18,6 @@ class ProductRetriever
         private readonly OpenRouterClient $openRouterClient,
         private readonly ModuleConfig $moduleConfig,
         private readonly ProductCollectionFactory $productCollectionFactory,
-        private readonly ProductFrontendUrlResolver $productFrontendUrlResolver,
-        private readonly ProductImageUrlResolver $productImageUrlResolver,
         private readonly Visibility $productVisibility
     ) {
     }
@@ -85,10 +81,7 @@ class ProductRetriever
                     'entity_id' => $entityId,
                     'sku' => (string)$product->getSku(),
                     'name' => (string)$product->getName(),
-                    'url' => $this->productFrontendUrlResolver->resolve($product, $storeId),
-                    'image_url' => $this->productImageUrlResolver->resolve($product, $storeId),
                     'short_description' => trim(strip_tags((string)$product->getData('short_description'))),
-                    'context_token' => base64_encode((string)$product->getSku()),
                 ];
             }, $hits)));
         } catch (LocalizedException) {
@@ -99,7 +92,7 @@ class ProductRetriever
     private function fallbackSearch(string $query, int $limit, ?int $storeId = null): array
     {
         $collection = $this->productCollectionFactory->create();
-        $collection->addAttributeToSelect(['name', 'small_image', 'image', 'short_description', 'url_key']);
+        $collection->addAttributeToSelect(['name', 'short_description']);
         if ($storeId && $storeId > 0) {
             $collection->setStoreId($storeId);
             $collection->addStoreFilter($storeId);
@@ -120,10 +113,7 @@ class ProductRetriever
                 'entity_id' => (int)$product->getId(),
                 'sku' => (string)$product->getSku(),
                 'name' => (string)$product->getName(),
-                'url' => $this->productFrontendUrlResolver->resolve($product, $storeId),
-                'image_url' => $this->productImageUrlResolver->resolve($product, $storeId),
                 'short_description' => trim(strip_tags((string)$product->getData('short_description'))),
-                'context_token' => base64_encode((string)$product->getSku()),
             ];
         }
 
@@ -142,7 +132,7 @@ class ProductRetriever
         }
 
         $collection = $this->productCollectionFactory->create();
-        $collection->addAttributeToSelect(['name', 'small_image', 'image', 'short_description', 'url_key']);
+        $collection->addAttributeToSelect(['name', 'short_description']);
         if ($storeId && $storeId > 0) {
             $collection->setStoreId($storeId);
             $collection->addStoreFilter($storeId);

@@ -18,13 +18,13 @@ define([], function () {
 
     return {
         startSession: function (endpoint) {
-            return request(endpoint, 'mutation { startAiChatSession { session_uid resume_token request_uid messages { role content message_type created_at product_mentions { sku name url image_url selected } } } }').then(function (data) { return data.startAiChatSession; });
+            return request(endpoint, 'mutation { startAiChatSession { session_uid resume_token request_uid messages { role content message_type created_at product_mentions { selected product { sku name small_image { url } url_rewrites { url } } } } } }').then(function (data) { return data.startAiChatSession; });
         },
         resumeSession: function (endpoint, credentials) {
-            return request(endpoint, 'query Resume($input: ResumeAiChatSessionInput!) { resumeAiChatSession(input: $input) { session_uid request_uid messages { role content message_type created_at product_mentions { sku name url image_url selected } } } }', {input: credentials}).then(function (data) { return data.resumeAiChatSession; });
+            return request(endpoint, 'query Resume($input: ResumeAiChatSessionInput!) { resumeAiChatSession(input: $input) { session_uid request_uid messages { role content message_type created_at product_mentions { selected product { sku name small_image { url } url_rewrites { url } } } } } }', {input: credentials}).then(function (data) { return data.resumeAiChatSession; });
         },
         sendMessage: function (endpoint, credentials, message, selectedSku) {
-            return request(endpoint, 'mutation Send($input: SendAiChatMessageInput!) { sendAiChatMessage(input: $input) { request_uid session { session_uid request_uid messages { role content message_type created_at product_mentions { sku name url image_url selected } } } assistant_message { role content message_type created_at product_mentions { sku name url image_url selected } } } }', {input: {
+            return request(endpoint, 'mutation Send($input: SendAiChatMessageInput!) { sendAiChatMessage(input: $input) { request_uid session { session_uid request_uid messages { role content message_type created_at product_mentions { selected product { sku name small_image { url } url_rewrites { url } } } } } assistant_message { role content message_type created_at product_mentions { selected product { sku name small_image { url } url_rewrites { url } } } } } }', {input: {
                 session_uid: credentials.session_uid,
                 resume_token: credentials.resume_token,
                 client_message_id: String(Date.now()) + '-' + Math.random().toString(16).slice(2),

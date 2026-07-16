@@ -333,7 +333,7 @@ define(['Perspective_AiCustomizationRequests/js/chat-service'], function (chatSe
             contextBar.replaceChildren();
             contextBar.hidden = false;
             contextBar.appendChild(createElement('span', 'perspective-ai-chat__context-label', copy.contextLabel));
-            contextBar.appendChild(createElement('strong', 'perspective-ai-chat__context-name', mention.name));
+            contextBar.appendChild(createElement('strong', 'perspective-ai-chat__context-name', mention.product.name));
             var remove = createElement('button', 'perspective-ai-chat__context-remove', copy.contextRemove);
             remove.type = 'button';
             remove.addEventListener('click', function () {
@@ -347,24 +347,26 @@ define(['Perspective_AiCustomizationRequests/js/chat-service'], function (chatSe
         }
 
         function renderProduct(mention) {
+            if (!mention.product) { return document.createDocumentFragment(); }
+            var product = mention.product;
             var card = createElement('div', 'perspective-ai-chat__product');
             var thumbnail = createElement('div', 'perspective-ai-chat__product-image');
             var fallback = createElement(
                 'span',
                 'perspective-ai-chat__product-image-fallback',
-                (mention.name || mention.sku || '?').charAt(0).toUpperCase()
+                (product.name || product.sku || '?').charAt(0).toUpperCase()
             );
             thumbnail.appendChild(fallback);
-            if (mention.image_url) {
+            if (product.small_image && product.small_image.url) {
                 var image = createElement('img');
-                image.src = mention.image_url;
+                image.src = product.small_image.url;
                 image.alt = '';
                 image.loading = 'lazy';
                 thumbnail.appendChild(image);
             }
             var details = createElement('div', 'perspective-ai-chat__product-details');
             details.appendChild(createElement('span', 'perspective-ai-chat__product-label', copy.productLabel));
-            details.appendChild(createElement('strong', 'perspective-ai-chat__product-name', mention.name));
+            details.appendChild(createElement('strong', 'perspective-ai-chat__product-name', product.name));
             card.appendChild(thumbnail);
             card.appendChild(details);
             var actions = createElement('div', 'perspective-ai-chat__product-actions');
@@ -372,9 +374,10 @@ define(['Perspective_AiCustomizationRequests/js/chat-service'], function (chatSe
             ask.type = 'button';
             ask.addEventListener('click', function () { selectProduct(mention); });
             actions.appendChild(ask);
-            if (mention.url) {
+            var productUrl = product.url_rewrites && product.url_rewrites.length ? product.url_rewrites[0].url : null;
+            if (productUrl) {
                 var link = createElement('a', 'perspective-ai-chat__product-link', copy.productView);
-                link.href = mention.url;
+                link.href = productUrl;
                 link.target = '_blank';
                 link.rel = 'noopener';
                 actions.appendChild(link);
@@ -501,7 +504,7 @@ define(['Perspective_AiCustomizationRequests/js/chat-service'], function (chatSe
                 config.graphqlEndpoint,
                 credentials,
                 message,
-                selectedProduct ? selectedProduct.sku : null
+                selectedProduct ? selectedProduct.product.sku : null
             ).then(function (payload) {
                 messages = payload.session.messages || [];
                 selectedProduct = null;
