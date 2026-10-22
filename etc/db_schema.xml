@@ -4,50 +4,49 @@
     <table name="perspective_ai_chat_session" resource="default" engine="innodb" comment="Perspective AI chat sessions">
         <column xsi:type="int" name="session_id" unsigned="true" nullable="false" identity="true" comment="Session ID"/>
         <column xsi:type="varchar" name="session_uid" nullable="false" length="64" comment="Session UID"/>
-        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" default="0" comment="Store ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
         <column xsi:type="int" name="customer_id" unsigned="true" nullable="true" comment="Customer ID"/>
         <column xsi:type="varchar" name="customer_email" nullable="true" length="255" comment="Customer Email"/>
-        <column xsi:type="varchar" name="resume_token_hash" nullable="false" length="64" comment="Guest Resume Token Hash"/>
-        <column xsi:type="varchar" name="status" nullable="false" length="32" default="active" comment="Status"/>
-        <column xsi:type="timestamp" name="expires_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Expires At"/>
+        <column xsi:type="varchar" name="resume_token_hash" nullable="false" length="64" comment="Resume Token Hash"/>
+        <column xsi:type="timestamp" name="expires_at" on_update="false" nullable="false" comment="Expires At"/>
         <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
         <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="session_id"/>
         </constraint>
-        <constraint xsi:type="unique" referenceId="PERSPECTIVE_AI_CHAT_SESSION_UID_UNIQUE">
+        <constraint xsi:type="unique" referenceId="PERSPECTIVE_AI_CHAT_SESSION_SESSION_UID">
             <column name="session_uid"/>
         </constraint>
-        <index referenceId="PERSPECTIVE_AI_CHAT_SESSION_CUSTOMER_ID" indexType="btree">
-            <column name="customer_id"/>
-        </index>
-        <index referenceId="PERSPECTIVE_AI_CHAT_SESSION_STORE_STATUS" indexType="btree">
-            <column name="store_id"/>
-            <column name="status"/>
+        <constraint xsi:type="foreign" referenceId="PERSPECTIVE_AI_CHAT_SESSION_STORE_ID_STORE_STORE_ID"
+                    table="perspective_ai_chat_session" column="store_id"
+                    referenceTable="store" referenceColumn="store_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="PERSPECTIVE_AI_CHAT_SESSION_CUSTOMER_ID_CUSTOMER_ENTITY_ENTITY_ID"
+                    table="perspective_ai_chat_session" column="customer_id"
+                    referenceTable="customer_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+        <index referenceId="PERSPECTIVE_AI_CHAT_SESSION_EXPIRES_AT" indexType="btree">
+            <column name="expires_at"/>
         </index>
     </table>
 
     <table name="perspective_ai_chat_message" resource="default" engine="innodb" comment="Perspective AI chat messages">
         <column xsi:type="int" name="message_id" unsigned="true" nullable="false" identity="true" comment="Message ID"/>
         <column xsi:type="int" name="session_id" unsigned="true" nullable="false" comment="Session ID"/>
-        <column xsi:type="varchar" name="role" nullable="false" length="32" comment="Role"/>
-        <column xsi:type="varchar" name="message_type" nullable="false" length="32" default="text" comment="Message Type"/>
-        <column xsi:type="varchar" name="client_message_id" nullable="true" length="64" comment="Client Message Idempotency Key"/>
-        <column xsi:type="mediumtext" name="content" nullable="false" comment="Message Content"/>
-        <column xsi:type="mediumtext" name="product_mentions_json" nullable="true" comment="Product Mentions JSON"/>
-        <column xsi:type="text" name="page_context_json" nullable="true" comment="Resolved Storefront Page Context JSON"/>
+        <column xsi:type="varchar" name="role" nullable="false" length="16" comment="Role: user, assistant, tool"/>
+        <column xsi:type="varchar" name="client_message_id" nullable="true" length="64" comment="Client Idempotency Key"/>
+        <column xsi:type="mediumtext" name="content" nullable="true" comment="Content"/>
+        <column xsi:type="mediumtext" name="tool_calls_json" nullable="true" comment="Assistant Tool Calls JSON"/>
+        <column xsi:type="varchar" name="tool_call_id" nullable="true" length="128" comment="Tool Call ID Answered"/>
+        <column xsi:type="text" name="product_mentions_json" nullable="true" comment="Product Mentions JSON"/>
+        <column xsi:type="text" name="page_context_json" nullable="true" comment="Storefront Page Context JSON"/>
         <column xsi:type="varchar" name="model_name" nullable="true" length="255" comment="Model Name"/>
         <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="message_id"/>
         </constraint>
-        <constraint xsi:type="foreign" referenceId="PERSPECTIVE_AI_CHAT_MESSAGE_SESSION_ID_CHAT_SESSION_SESSION_ID"
+        <constraint xsi:type="foreign" referenceId="PERSPECTIVE_AI_CHAT_MSG_SESSION_ID_PERSPECTIVE_AI_CHAT_SESSION_SESSION_ID"
                     table="perspective_ai_chat_message" column="session_id"
                     referenceTable="perspective_ai_chat_session" referenceColumn="session_id" onDelete="CASCADE"/>
-        <index referenceId="PERSPECTIVE_AI_CHAT_MESSAGE_SESSION_ID" indexType="btree">
-            <column name="session_id"/>
-        </index>
-        <constraint xsi:type="unique" referenceId="PERSPECTIVE_AI_CHAT_MESSAGE_SESSION_CLIENT_MESSAGE_UNIQUE">
+        <constraint xsi:type="unique" referenceId="PERSPECTIVE_AI_CHAT_MESSAGE_SESSION_ID_CLIENT_MESSAGE_ID">
             <column name="session_id"/>
             <column name="client_message_id"/>
         </constraint>
@@ -56,74 +55,82 @@
     <table name="perspective_ai_customization_request" resource="default" engine="innodb" comment="Perspective AI customization requests">
         <column xsi:type="int" name="request_id" unsigned="true" nullable="false" identity="true" comment="Request ID"/>
         <column xsi:type="varchar" name="request_uid" nullable="false" length="64" comment="Request UID"/>
-        <column xsi:type="int" name="session_id" unsigned="true" nullable="true" comment="Session ID"/>
-        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" default="0" comment="Store ID"/>
+        <column xsi:type="int" name="session_id" unsigned="true" nullable="true" comment="Chat Session ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
         <column xsi:type="int" name="customer_id" unsigned="true" nullable="true" comment="Customer ID"/>
         <column xsi:type="varchar" name="customer_email" nullable="false" length="255" comment="Customer Email"/>
         <column xsi:type="int" name="base_product_id" unsigned="true" nullable="true" comment="Base Product ID"/>
-        <column xsi:type="varchar" name="base_product_sku" nullable="true" length="64" comment="Base Product SKU"/>
+        <column xsi:type="varchar" name="base_product_sku" nullable="false" length="64" comment="Base Product SKU"/>
         <column xsi:type="varchar" name="title" nullable="false" length="255" comment="Title"/>
-        <column xsi:type="text" name="summary" nullable="true" comment="Summary"/>
-        <column xsi:type="mediumtext" name="requested_changes_json" nullable="true" comment="Requested Changes JSON"/>
+        <column xsi:type="text" name="summary" nullable="false" comment="Summary"/>
+        <column xsi:type="mediumtext" name="requested_changes_json" nullable="false" comment="Requested Changes JSON"/>
         <column xsi:type="varchar" name="status" nullable="false" length="32" default="pending_review" comment="Status"/>
-        <column xsi:type="int" name="custom_product_id" unsigned="true" nullable="true" comment="Approved Custom Product ID"/>
-        <column xsi:type="varchar" name="custom_product_sku" nullable="true" length="64" comment="Approved Custom Product SKU"/>
-        <column xsi:type="int" name="prepared_quote_id" unsigned="true" nullable="true" comment="Prepared Quote ID"/>
+        <column xsi:type="int" name="custom_product_id" unsigned="true" nullable="true" comment="Custom Product ID"/>
+        <column xsi:type="varchar" name="custom_product_sku" nullable="true" length="64" comment="Custom Product SKU"/>
         <column xsi:type="varchar" name="restore_token_hash" nullable="true" length="64" comment="Restore Token Hash"/>
         <column xsi:type="timestamp" name="restore_expires_at" on_update="false" nullable="true" comment="Restore Expires At"/>
         <column xsi:type="timestamp" name="restore_consumed_at" on_update="false" nullable="true" comment="Restore Consumed At"/>
-        <column xsi:type="text" name="approval_notes" nullable="true" comment="Approval Notes"/>
-        <column xsi:type="text" name="decline_reason" nullable="true" comment="Decline Reason"/>
-        <column xsi:type="int" name="approved_by_user_id" unsigned="true" nullable="true" comment="Approved By User ID"/>
-        <column xsi:type="timestamp" name="approval_email_sent_at" on_update="false" nullable="true" comment="Approval Email Sent At"/>
-        <column xsi:type="timestamp" name="decline_email_sent_at" on_update="false" nullable="true" comment="Decline Email Sent At"/>
+        <column xsi:type="text" name="decision_note" nullable="true" comment="Admin Decision Note Or Decline Reason"/>
+        <column xsi:type="int" name="decided_by_user_id" unsigned="true" nullable="true" comment="Deciding Admin User ID"/>
+        <column xsi:type="timestamp" name="notified_at" on_update="false" nullable="true" comment="Customer Decision Email Sent At"/>
         <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
         <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="request_id"/>
         </constraint>
-        <constraint xsi:type="unique" referenceId="PERSPECTIVE_AI_REQUEST_UID_UNIQUE">
+        <constraint xsi:type="unique" referenceId="PERSPECTIVE_AI_CUSTOMIZATION_REQUEST_REQUEST_UID">
             <column name="request_uid"/>
         </constraint>
-        <constraint xsi:type="unique" referenceId="PERSPECTIVE_AI_REQUEST_RESTORE_TOKEN_HASH_UNIQUE">
+        <constraint xsi:type="unique" referenceId="PERSPECTIVE_AI_CUSTOMIZATION_REQUEST_RESTORE_TOKEN_HASH">
             <column name="restore_token_hash"/>
         </constraint>
-        <constraint xsi:type="foreign" referenceId="PERSPECTIVE_AI_REQUEST_SESSION_ID_CHAT_SESSION_SESSION_ID"
+        <constraint xsi:type="foreign" referenceId="PERSPECTIVE_AI_CSTM_REQ_SESSION_ID_PERSPECTIVE_AI_CHAT_SESSION_SESSION_ID"
                     table="perspective_ai_customization_request" column="session_id"
                     referenceTable="perspective_ai_chat_session" referenceColumn="session_id" onDelete="SET NULL"/>
-        <index referenceId="PERSPECTIVE_AI_REQUEST_STATUS" indexType="btree">
+        <constraint xsi:type="foreign" referenceId="PERSPECTIVE_AI_CUSTOMIZATION_REQUEST_STORE_ID_STORE_STORE_ID"
+                    table="perspective_ai_customization_request" column="store_id"
+                    referenceTable="store" referenceColumn="store_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="PERSPECTIVE_AI_CSTM_REQ_CUSTOMER_ID_CUSTOMER_ENTITY_ENTITY_ID"
+                    table="perspective_ai_customization_request" column="customer_id"
+                    referenceTable="customer_entity" referenceColumn="entity_id" onDelete="SET NULL"/>
+        <constraint xsi:type="foreign" referenceId="PERSPECTIVE_AI_CSTM_REQ_BASE_PRD_ID_CAT_PRD_ENTT_ENTT_ID"
+                    table="perspective_ai_customization_request" column="base_product_id"
+                    referenceTable="catalog_product_entity" referenceColumn="entity_id" onDelete="SET NULL"/>
+        <constraint xsi:type="foreign" referenceId="PERSPECTIVE_AI_CSTM_REQ_CSTM_PRD_ID_CAT_PRD_ENTT_ENTT_ID"
+                    table="perspective_ai_customization_request" column="custom_product_id"
+                    referenceTable="catalog_product_entity" referenceColumn="entity_id" onDelete="SET NULL"/>
+        <index referenceId="PERSPECTIVE_AI_CUSTOMIZATION_REQUEST_SESSION_ID_STATUS" indexType="btree">
+            <column name="session_id"/>
             <column name="status"/>
         </index>
-        <index referenceId="PERSPECTIVE_AI_REQUEST_STORE_STATUS" indexType="btree">
-            <column name="store_id"/>
+        <index referenceId="PERSPECTIVE_AI_CUSTOMIZATION_REQUEST_STATUS" indexType="btree">
             <column name="status"/>
         </index>
-        <index referenceId="PERSPECTIVE_AI_REQUEST_CUSTOMER_ID" indexType="btree">
-            <column name="customer_id"/>
-        </index>
-        <index referenceId="PERSPECTIVE_AI_REQUEST_BASE_PRODUCT_ID" indexType="btree">
-            <column name="base_product_id"/>
+        <index referenceId="PERSPECTIVE_AI_CSTM_REQ_REQ_UID_CSTR_EMAIL_BASE_PRD_SKU_TTL_SUMMARY" indexType="fulltext">
+            <column name="request_uid"/>
+            <column name="customer_email"/>
+            <column name="base_product_sku"/>
+            <column name="title"/>
+            <column name="summary"/>
         </index>
     </table>
 
     <table name="perspective_ai_request_history" resource="default" engine="innodb" comment="Perspective AI request history">
         <column xsi:type="int" name="history_id" unsigned="true" nullable="false" identity="true" comment="History ID"/>
         <column xsi:type="int" name="request_id" unsigned="true" nullable="false" comment="Request ID"/>
-        <column xsi:type="varchar" name="actor_type" nullable="false" length="32" comment="Actor Type"/>
+        <column xsi:type="varchar" name="actor_type" nullable="false" length="16" comment="Actor Type: agent, admin, customer"/>
         <column xsi:type="int" name="actor_id" unsigned="true" nullable="true" comment="Actor ID"/>
-        <column xsi:type="varchar" name="action" nullable="false" length="64" comment="Action"/>
+        <column xsi:type="varchar" name="action" nullable="false" length="32" comment="Action"/>
         <column xsi:type="text" name="note" nullable="true" comment="Note"/>
-        <column xsi:type="mediumtext" name="payload_json" nullable="true" comment="Payload JSON"/>
         <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="history_id"/>
         </constraint>
-        <constraint xsi:type="foreign" referenceId="PERSPECTIVE_AI_REQUEST_HISTORY_REQUEST_ID_REQUEST_REQUEST_ID"
+        <constraint xsi:type="foreign" referenceId="PERSPECTIVE_AI_REQ_HISTORY_REQ_ID_PERSPECTIVE_AI_CSTM_REQ_REQ_ID"
                     table="perspective_ai_request_history" column="request_id"
                     referenceTable="perspective_ai_customization_request" referenceColumn="request_id" onDelete="CASCADE"/>
         <index referenceId="PERSPECTIVE_AI_REQUEST_HISTORY_REQUEST_ID" indexType="btree">
             <column name="request_id"/>
         </index>
     </table>
-
 </schema>

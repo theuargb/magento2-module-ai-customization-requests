@@ -66,7 +66,13 @@
                 <label translate="true">Status</label>
                 <filter>select</filter>
                 <dataType>select</dataType>
-                <options class="Perspective\AiCustomizationRequests\Model\Source\RequestStatus"/>
+                <options class="Perspective\AiCustomizationRequests\Model\Source\RequestStatusOptions"/>
+            </settings>
+        </column>
+        <column name="title">
+            <settings>
+                <label translate="true">Title</label>
+                <filter>text</filter>
             </settings>
         </column>
         <column name="summary">

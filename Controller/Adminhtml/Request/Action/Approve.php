@@ -3,50 +3,34 @@ declare(strict_types=1);
 
 namespace Perspective\AiCustomizationRequests\Controller\Adminhtml\Request\Action;
 
-use Magento\Backend\App\Action;
-use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\Controller\Result\Redirect;
-use Magento\Framework\Exception\LocalizedException;
-use Perspective\AiCustomizationRequests\Model\CustomizationRequestFactory;
-use Perspective\AiCustomizationRequests\Model\ResourceModel\CustomizationRequest as RequestResource;
-use Perspective\AiCustomizationRequests\Model\Workflow\CustomizationApprovalService;
+use Magento\Backend\App\Action\Context;
+use Perspective\AiCustomizationRequests\Model\Request\ApprovalService;
+use Perspective\AiCustomizationRequests\Model\Request\CustomizationRequest;
+use Perspective\AiCustomizationRequests\Model\Request\RequestRepository;
+use Psr\Log\LoggerInterface;
 
-class Approve extends Action implements HttpPostActionInterface
+class Approve extends AbstractRequestAction
 {
     public const ADMIN_RESOURCE = 'Perspective_AiCustomizationRequests::approve';
 
     public function __construct(
-        Action\Context $context,
-        private readonly CustomizationRequestFactory $requestFactory,
-        private readonly RequestResource $requestResource,
-        private readonly CustomizationApprovalService $approvalService
+        Context $context,
+        RequestRepository $requestRepository,
+        LoggerInterface $logger,
+        private readonly ApprovalService $approvalService
     ) {
-        parent::__construct($context);
+        parent::__construct($context, $requestRepository, $logger);
     }
 
-    public function execute(): Redirect
+    protected function handle(CustomizationRequest $request, int $adminUserId): void
     {
-        $resultRedirect = $this->resultRedirectFactory->create();
-        try {
-            $request = $this->loadRequest();
-            $note = trim((string)$this->getRequest()->getParam('decision_note'));
-            $this->approvalService->approve($request, (int)$this->_auth->getUser()->getId(), $note ?: null);
-            $this->messageManager->addSuccessMessage(__('The request has been approved and emailed.'));
-        } catch (\Throwable $exception) {
-            $this->messageManager->addErrorMessage($exception->getMessage());
-        }
+        $note = trim((string)$this->getRequest()->getParam('decision_note'));
+        $sent = $this->approvalService->approve($request, $adminUserId, $note !== '' ? $note : null);
 
-        return $resultRedirect->setPath('perspective_ai_request/request/edit', ['request_id' => (int)$this->getRequest()->getParam('request_id')]);
-    }
-
-    private function loadRequest()
-    {
-        $request = $this->requestFactory->create();
-        $this->requestResource->load($request, (int)$this->getRequest()->getParam('request_id'));
-        if (!$request->getId()) {
-            throw new LocalizedException(__('The request no longer exists.'));
-        }
-
-        return $request;
+        $this->messageManager->addSuccessMessage(
+            $sent
+                ? __('The request has been approved and the customer email was sent.')
+                : __('Approved. The customer email was not sent; use Resend email.')
+        );
     }
 }

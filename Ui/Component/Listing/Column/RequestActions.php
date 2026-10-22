@@ -4,13 +4,19 @@ declare(strict_types=1);
 namespace Perspective\AiCustomizationRequests\Ui\Component\Listing\Column;
 
 use Magento\Framework\UrlInterface;
+use Magento\Framework\View\Element\UiComponent\ContextInterface;
+use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
 
 class RequestActions extends Column
 {
+    /**
+     * @param array<string, mixed> $components
+     * @param array<string, mixed> $data
+     */
     public function __construct(
-        \Magento\Framework\View\Element\UiComponent\ContextInterface $context,
-        \Magento\Framework\View\Element\UiComponentFactory $uiComponentFactory,
+        ContextInterface $context,
+        UiComponentFactory $uiComponentFactory,
         private readonly UrlInterface $urlBuilder,
         array $components = [],
         array $data = []
@@ -18,6 +24,10 @@ class RequestActions extends Column
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
+    /**
+     * @param array<string, mixed> $dataSource
+     * @return array<string, mixed>
+     */
     public function prepareDataSource(array $dataSource): array
     {
         if (!isset($dataSource['data']['items'])) {

@@ -7,21 +7,25 @@ request for an admin to review.
 
 ## How it works
 
-1. The chat widget is shown on every storefront page and talks to Magento over GraphQL.
+1. The chat widget (Luma, RequireJS + LESS) is shown on every storefront page of a store view where
+   the module is enabled and talks to Magento over GraphQL.
 2. Each message runs through an agent loop on OpenRouter. The model can use three tools:
-   - `search_catalog`: hybrid kNN + keyword search in OpenSearch, with a DB `LIKE` fallback
-   - `get_product_context`: details for a single SKU
-   - `create_customization_request`: saves the request for admin review
+   - `search_catalog`: hybrid kNN + BM25 search in OpenSearch (reciprocal rank fusion), with a logged
+     DB fallback
+   - `get_product_context`: details for a single storefront-available SKU
+   - `save_customization_request`: creates the session's pending request, or updates it if one exists
 3. A new request shows up in the admin notification inbox and under
    **Content → Customization Requests**.
 4. When an admin approves a request, the module creates a hidden simple product
-   (`<base-sku>-CUSTOM-<id>`) and emails the customer a single-use restore link.
-5. The restore link (`/ai-customization/restore/index/token/<token>/`) adds the
-   custom product to the shopper's cart and redirects to the cart page.
-6. When an admin declines a request, the customer gets an email with the reason.
+   (`<base-sku>-CUSTOM-<id>`) and emails the customer a single-use restore link
+   (valid for the configured number of days). If the email fails, the admin can resend it with a new link.
+5. The restore link (`/ai-customization/restore/index/token/<token>/`) opens a small page that adds the
+   custom product to the visitor's own cart and redirects to the cart page.
+6. When an admin declines a request, the customer gets an email with the reason (the note is required).
 
 The agent never quotes prices and never promises approval. Every request goes
-through an admin.
+through an admin. The customer email comes only from the chat session: the account email for
+logged-in shoppers, or the email a guest enters in the widget before the first message.
 
 ## Requirements
 
@@ -48,20 +52,21 @@ Go to **Stores → Configuration → General → Perspective AI Customization**.
 | OpenRouter | API key (stored encrypted), plus the optional site URL and title sent as attribution headers |
 | Agent | Chat model (`openrouter/auto`), embedding model (`google/gemini-embedding-001`), max tool iterations, HTTP timeout, message length limit, session TTL |
 | OpenSearch | Host, port and credentials. Leave them empty to reuse the catalog search connection. Also: index name prefix, vector dimensions (`3072`, must match the embedding model), batch size. |
-| Email | Sender identity and the approve / decline templates |
+| Email | Sender identity, approve / decline templates, restore link lifetime in days |
 
 You can't change the vector dimensions without a full reindex.
 
 ## Indexing
 
-The `perspective_ai_product_rag` indexer builds one index per store view, named
-`<index_name>_store_<id>`. Only enabled products that are visible on the
-storefront get indexed. Each document holds the name, descriptions, category
-names, and readable select/text attributes, and is embedded through OpenRouter.
+The `perspective_ai_product_rag` indexer maintains one alias per store view, named
+`<index_name>_store_<id>`. A full reindex builds a new timestamped index, swaps the alias and drops
+the old indices, so search keeps working during the rebuild. Only enabled products that are
+visible on the storefront and assigned to the store's website get indexed. Each document holds the
+name, descriptions, category names, and readable select/text attributes, and is embedded through
+OpenRouter in batches; unchanged documents reuse their stored embedding (content hash).
 
 "Update by schedule" is supported through mview subscriptions on the product
-EAV, website, and category-link tables. Every change re-embeds the product, so
-large catalogs should use scheduled mode.
+EAV, website, and category-link tables. Large catalogs should use scheduled mode.
 
 ## GraphQL API
 
@@ -73,14 +78,17 @@ large catalogs should use scheduled mode.
 | `mutation restoreAiPreparedCart(token)` | Adds the approved product to the current cart |
 
 The schema is in `etc/schema.graphqls`. Guests have to give an email before
-their first message. The resume token is stored only as a sha256 hash.
+their first message (`email_required`). The resume token is stored only as a sha256 hash.
+`sendAiChatMessage` is idempotent by `client_message_id`: the widget retries a failed message with
+the same id and gets the stored reply if the turn already ran. Expired sessions are removed by cron.
 
 ## Admin
 
-- **ACL:** `requests` (view), `approve`, `decline`, `config`
-- The grid is a standard UI listing. The request page shows the requested
-  changes, links to the customer and products, the approve/decline form, and the
-  history.
+- **ACL:** `requests` (view), `approve`, `decline`, `notify` (resend customer email), `config`
+- The grid is a standard UI listing with status filter and row actions. The request page shows the
+  requested changes, links to the customer and products, the approve/decline form, the resend
+  action, and the history.
+- Decisions are compare-and-set status transitions: two admins deciding at once cannot both win.
 
 ## Data
 
@@ -93,17 +101,23 @@ their first message. The resume token is stored only as a sha256 hash.
 
 ## Code map
 
+See `ARCHITECTURE.md` for responsibilities and rules.
+
 ```
-GraphQl/Resolver/        thin GraphQL entry points
-Model/Agent/             agent loop, tool registry, tools
-Model/OpenRouter/        chat + embeddings client
-Model/OpenSearch/        index client, document builder, retriever
+GraphQl/                 thin resolvers, RequestScope, ChatOutputFormatter
+Model/Chat/              sessions, messages, identity, ChatTurnService
+Model/Agent/             agent loop, prompts, transcript replay, tool registry, tools
+Model/Request/           requests, status machine, approval, custom product, cart restore, notifiers
+Model/Catalog/           storefront product guard, summaries, page context
+Model/Search/            OpenSearch client, index manager, document builder, retriever
 Model/Indexer/           RAG indexer
-Model/Workflow/          approval, product creation, cart restore, admin notice
-Model/Email/             customer notifications
+Model/OpenRouter/        chat + embeddings client
+Model/Infra/             JSON HTTP client, JSON codec, tokens
 Model/Config/            typed config access
-view/frontend/web/js/    widget (support-chat.js) and GraphQL calls (chat-service.js)
+ViewModel/               widget init, restore page init, admin request view
+view/frontend/web/js/    support-chat.js (controller), chat-view.js, chat-markdown.js,
+                         chat-service.js (GraphQL), restore-cart.js
 ```
 
 To add a tool, implement `Model\Agent\Tool\ToolInterface` and register it in
-the `tools` argument of `ToolExecutor` in `etc/di.xml`.
+the `tools` argument of `Model\Agent\ToolRegistry` in `etc/di.xml`.

@@ -1,2 +1,11 @@
-<?php /** @var \Perspective\AiCustomizationRequests\Block\Chat\Widget $block */ ?>
-<div id="perspective-ai-chat-root" data-mage-init='{"Perspective_AiCustomizationRequests/js/support-chat": <?= /* @noEscape */ $block->getInitConfigJson() ?>}'></div>
+<?php
+/**
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Perspective\AiCustomizationRequests\ViewModel\ChatWidget $viewModel
+ */
+$viewModel = $block->getData('view_model');
+?>
+<div id="perspective-ai-chat-root"></div>
+<script type="text/x-magento-init">
+{"#perspective-ai-chat-root": {"Perspective_AiCustomizationRequests/js/support-chat": <?= /* @noEscape */ $viewModel->getInitJson() ?>}}
+</script>

@@ -1,0 +1,128 @@
+{
+    "perspective_ai_chat_session": {
+        "column": {
+            "session_id": true,
+            "session_uid": true,
+            "store_id": true,
+            "customer_id": true,
+            "customer_email": true,
+            "resume_token_hash": true,
+            "status": true,
+            "expires_at": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "PERSPECTIVE_AI_CHAT_SESSION_CUSTOMER_ID": true,
+            "PERSPECTIVE_AI_CHAT_SESSION_STORE_STATUS": true,
+            "PERSPECTIVE_AI_CHAT_SESSION_EXPIRES_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PERSPECTIVE_AI_CHAT_SESSION_UID_UNIQUE": true,
+            "PERSPECTIVE_AI_CHAT_SESSION_SESSION_UID": true,
+            "PERSPECTIVE_AI_CHAT_SESSION_STORE_ID_STORE_STORE_ID": true,
+            "PERSPECTIVE_AI_CHAT_SESSION_CUSTOMER_ID_CUSTOMER_ENTITY_ENTITY_ID": true
+        }
+    },
+    "perspective_ai_chat_message": {
+        "column": {
+            "message_id": true,
+            "session_id": true,
+            "role": true,
+            "message_type": true,
+            "client_message_id": true,
+            "content": true,
+            "product_mentions_json": true,
+            "page_context_json": true,
+            "model_name": true,
+            "created_at": true,
+            "tool_calls_json": true,
+            "tool_call_id": true
+        },
+        "index": {
+            "PERSPECTIVE_AI_CHAT_MESSAGE_SESSION_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PERSPECTIVE_AI_CHAT_MESSAGE_SESSION_ID_CHAT_SESSION_SESSION_ID": true,
+            "PERSPECTIVE_AI_CHAT_MESSAGE_SESSION_CLIENT_MESSAGE_UNIQUE": true,
+            "PERSPECTIVE_AI_CHAT_MSG_SESSION_ID_PERSPECTIVE_AI_CHAT_SESSION_SESSION_ID": true,
+            "PERSPECTIVE_AI_CHAT_MESSAGE_SESSION_ID_CLIENT_MESSAGE_ID": true
+        }
+    },
+    "perspective_ai_customization_request": {
+        "column": {
+            "request_id": true,
+            "request_uid": true,
+            "session_id": true,
+            "store_id": true,
+            "customer_id": true,
+            "customer_email": true,
+            "base_product_id": true,
+            "base_product_sku": true,
+            "title": true,
+            "summary": true,
+            "requested_changes_json": true,
+            "status": true,
+            "custom_product_id": true,
+            "custom_product_sku": true,
+            "prepared_quote_id": true,
+            "restore_token_hash": true,
+            "restore_expires_at": true,
+            "restore_consumed_at": true,
+            "approval_notes": true,
+            "decline_reason": true,
+            "approved_by_user_id": true,
+            "approval_email_sent_at": true,
+            "decline_email_sent_at": true,
+            "created_at": true,
+            "updated_at": true,
+            "decision_note": true,
+            "decided_by_user_id": true,
+            "notified_at": true
+        },
+        "index": {
+            "PERSPECTIVE_AI_REQUEST_STATUS": true,
+            "PERSPECTIVE_AI_REQUEST_STORE_STATUS": true,
+            "PERSPECTIVE_AI_REQUEST_CUSTOMER_ID": true,
+            "PERSPECTIVE_AI_REQUEST_BASE_PRODUCT_ID": true,
+            "PERSPECTIVE_AI_CUSTOMIZATION_REQUEST_SESSION_ID_STATUS": true,
+            "PERSPECTIVE_AI_CUSTOMIZATION_REQUEST_STATUS": true,
+            "PERSPECTIVE_AI_CSTM_REQ_REQ_UID_CSTR_EMAIL_BASE_PRD_SKU_TTL_SUMMARY": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PERSPECTIVE_AI_REQUEST_UID_UNIQUE": true,
+            "PERSPECTIVE_AI_REQUEST_RESTORE_TOKEN_HASH_UNIQUE": true,
+            "PERSPECTIVE_AI_REQUEST_SESSION_ID_CHAT_SESSION_SESSION_ID": true,
+            "PERSPECTIVE_AI_CUSTOMIZATION_REQUEST_REQUEST_UID": true,
+            "PERSPECTIVE_AI_CUSTOMIZATION_REQUEST_RESTORE_TOKEN_HASH": true,
+            "PERSPECTIVE_AI_CSTM_REQ_SESSION_ID_PERSPECTIVE_AI_CHAT_SESSION_SESSION_ID": true,
+            "PERSPECTIVE_AI_CUSTOMIZATION_REQUEST_STORE_ID_STORE_STORE_ID": true,
+            "PERSPECTIVE_AI_CSTM_REQ_CUSTOMER_ID_CUSTOMER_ENTITY_ENTITY_ID": true,
+            "PERSPECTIVE_AI_CSTM_REQ_BASE_PRD_ID_CAT_PRD_ENTT_ENTT_ID": true,
+            "PERSPECTIVE_AI_CSTM_REQ_CSTM_PRD_ID_CAT_PRD_ENTT_ENTT_ID": true
+        }
+    },
+    "perspective_ai_request_history": {
+        "column": {
+            "history_id": true,
+            "request_id": true,
+            "actor_type": true,
+            "actor_id": true,
+            "action": true,
+            "note": true,
+            "payload_json": true,
+            "created_at": true
+        },
+        "index": {
+            "PERSPECTIVE_AI_REQUEST_HISTORY_REQUEST_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PERSPECTIVE_AI_REQUEST_HISTORY_REQUEST_ID_REQUEST_REQUEST_ID": true,
+            "PERSPECTIVE_AI_REQ_HISTORY_REQ_ID_PERSPECTIVE_AI_CSTM_REQ_REQ_ID": true
+        }
+    }
+}

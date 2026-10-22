@@ -3,54 +3,39 @@ declare(strict_types=1);
 
 namespace Perspective\AiCustomizationRequests\Controller\Adminhtml\Request\Action;
 
-use Magento\Backend\App\Action;
-use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\Controller\Result\Redirect;
+use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
-use Perspective\AiCustomizationRequests\Model\CustomizationRequestFactory;
-use Perspective\AiCustomizationRequests\Model\ResourceModel\CustomizationRequest as RequestResource;
-use Perspective\AiCustomizationRequests\Model\Workflow\CustomizationApprovalService;
+use Perspective\AiCustomizationRequests\Model\Request\ApprovalService;
+use Perspective\AiCustomizationRequests\Model\Request\CustomizationRequest;
+use Perspective\AiCustomizationRequests\Model\Request\RequestRepository;
+use Psr\Log\LoggerInterface;
 
-class Decline extends Action implements HttpPostActionInterface
+class Decline extends AbstractRequestAction
 {
     public const ADMIN_RESOURCE = 'Perspective_AiCustomizationRequests::decline';
 
     public function __construct(
-        Action\Context $context,
-        private readonly CustomizationRequestFactory $requestFactory,
-        private readonly RequestResource $requestResource,
-        private readonly CustomizationApprovalService $approvalService
+        Context $context,
+        RequestRepository $requestRepository,
+        LoggerInterface $logger,
+        private readonly ApprovalService $approvalService
     ) {
-        parent::__construct($context);
+        parent::__construct($context, $requestRepository, $logger);
     }
 
-    public function execute(): Redirect
+    protected function handle(CustomizationRequest $request, int $adminUserId): void
     {
-        $resultRedirect = $this->resultRedirectFactory->create();
-        try {
-            $request = $this->loadRequest();
-            $reason = trim((string)$this->getRequest()->getParam('decision_note'));
-            if ($reason === '') {
-                throw new LocalizedException(__('Decline reason is required.'));
-            }
-
-            $this->approvalService->decline($request, (int)$this->_auth->getUser()->getId(), $reason);
-            $this->messageManager->addSuccessMessage(__('The request has been declined.'));
-        } catch (\Throwable $exception) {
-            $this->messageManager->addErrorMessage($exception->getMessage());
+        $reason = trim((string)$this->getRequest()->getParam('decision_note'));
+        if ($reason === '') {
+            throw new LocalizedException(__('A decline reason is required.'));
         }
 
-        return $resultRedirect->setPath('perspective_ai_request/request/edit', ['request_id' => (int)$this->getRequest()->getParam('request_id')]);
-    }
+        $sent = $this->approvalService->decline($request, $adminUserId, $reason);
 
-    private function loadRequest()
-    {
-        $request = $this->requestFactory->create();
-        $this->requestResource->load($request, (int)$this->getRequest()->getParam('request_id'));
-        if (!$request->getId()) {
-            throw new LocalizedException(__('The request no longer exists.'));
-        }
-
-        return $request;
+        $this->messageManager->addSuccessMessage(
+            $sent
+                ? __('The request has been declined and the customer email was sent.')
+                : __('Declined. The customer email was not sent; use Resend email.')
+        );
     }
 }

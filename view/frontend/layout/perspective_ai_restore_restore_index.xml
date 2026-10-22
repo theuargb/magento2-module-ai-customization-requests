@@ -2,11 +2,15 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
-        <referenceBlock name="perspective.ai.chat.widget" remove="true"/>
         <referenceContainer name="content">
-            <block class="Perspective\AiCustomizationRequests\Block\Chat\Widget"
-                   name="perspective.ai.restore.widget"
-                   template="Perspective_AiCustomizationRequests::chat/widget.phtml"/>
+            <block class="Magento\Framework\View\Element\Template"
+                   name="perspective.ai.restore.cart"
+                   template="Perspective_AiCustomizationRequests::restore/cart.phtml"
+                   cacheable="false">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Perspective\AiCustomizationRequests\ViewModel\RestoreCart</argument>
+                </arguments>
+            </block>
         </referenceContainer>
     </body>
 </page>

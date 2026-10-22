@@ -3,9 +3,13 @@
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="content">
-            <block class="Perspective\AiCustomizationRequests\Block\Adminhtml\Request\View"
+            <block class="Magento\Backend\Block\Template"
                    name="perspective.ai.request.view"
-                   template="Perspective_AiCustomizationRequests::request/view.phtml"/>
+                   template="Perspective_AiCustomizationRequests::request/view.phtml">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Perspective\AiCustomizationRequests\ViewModel\Adminhtml\RequestView</argument>
+                </arguments>
+            </block>
         </referenceContainer>
     </body>
 </page>

@@ -1,63 +1,108 @@
 <?php
-/** @var \Perspective\AiCustomizationRequests\Block\Adminhtml\Request\View $block */
-$request = $block->getRequestModel();
-$changes = $block->decodeJson($request->getData('requested_changes_json'));
-$isPending = $request->getData('status') === \Perspective\AiCustomizationRequests\Model\CustomizationRequest::STATUS_PENDING_REVIEW;
-$customerUrl = $block->getCustomerUrl();
-$baseProductUrl = $block->getBaseProductUrl();
-$approvedProductUrl = $block->getApprovedProductUrl();
+/**
+ * @var \Magento\Backend\Block\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Perspective\AiCustomizationRequests\ViewModel\Adminhtml\RequestView $viewModel
+ */
+$viewModel = $block->getData('view_model');
+$request = $viewModel->getRequest();
+$link = static function (?string $url, string $label) use ($escaper): string {
+    return $url === null
+        ? $escaper->escapeHtml($label)
+        : '<a href="' . $escaper->escapeUrl($url) . '" target="_blank" rel="noopener">' . $escaper->escapeHtml($label) . '</a>';
+};
+$formKey = $block->getFormKey();
 ?>
-<div class="admin__page-section">
-    <div class="admin__page-section-title"><span class="title"><?= $block->escapeHtml(__('Customization Request')) ?></span></div>
+<section class="admin__page-section">
+    <div class="admin__page-section-title"><span class="title"><?= $escaper->escapeHtml(__('Customization Request')) ?></span></div>
     <div class="admin__page-section-content">
-        <table class="admin__table-secondary"><tbody>
-        <tr><th><?= $block->escapeHtml(__('Status')) ?></th><td><strong><?= $block->escapeHtml((string)$request->getData('status')) ?></strong></td></tr>
-        <tr><th><?= $block->escapeHtml(__('Customer Email')) ?></th><td>
-            <?php if ($customerUrl): ?>
-                <a href="<?= $block->escapeUrl($customerUrl) ?>" target="_blank" rel="noopener noreferrer"><?= $block->escapeHtml((string)$request->getData('customer_email')) ?></a>
-            <?php else: ?>
-                <?= $block->escapeHtml((string)$request->getData('customer_email')) ?> <?= $block->escapeHtml(__('(Guest)')) ?>
+        <table class="admin__table-secondary">
+            <tbody>
+            <tr><th><?= $escaper->escapeHtml(__('Status')) ?></th><td><strong><?= $escaper->escapeHtml($request->getStatus()->label()) ?></strong></td></tr>
+            <tr><th><?= $escaper->escapeHtml(__('Title')) ?></th><td><?= $escaper->escapeHtml($request->getTitle()) ?></td></tr>
+            <tr>
+                <th><?= $escaper->escapeHtml(__('Customer')) ?></th>
+                <td>
+                    <?= /* @noEscape */ $link($viewModel->getCustomerUrl(), $request->getCustomerEmail()) ?>
+                    <?php if ($request->getCustomerId() === null): ?><?= $escaper->escapeHtml(__('(Guest)')) ?><?php endif; ?>
+                </td>
+            </tr>
+            <tr><th><?= $escaper->escapeHtml(__('Base Product')) ?></th><td><?= /* @noEscape */ $link($viewModel->getProductUrl($request->getBaseProductId()), $request->getBaseProductSku()) ?></td></tr>
+            <?php if ($request->getCustomProductSku() !== null): ?>
+                <tr><th><?= $escaper->escapeHtml(__('Custom Product')) ?></th><td><?= /* @noEscape */ $link($viewModel->getProductUrl($request->getCustomProductId()), $request->getCustomProductSku()) ?></td></tr>
             <?php endif; ?>
-        </td></tr>
-        <tr><th><?= $block->escapeHtml(__('Base Product SKU')) ?></th><td>
-            <?php if ($baseProductUrl): ?>
-                <a href="<?= $block->escapeUrl($baseProductUrl) ?>" target="_blank" rel="noopener noreferrer"><?= $block->escapeHtml((string)$request->getData('base_product_sku')) ?></a>
-            <?php else: ?>
-                <?= $block->escapeHtml((string)$request->getData('base_product_sku')) ?>
+            <tr><th><?= $escaper->escapeHtml(__('Summary')) ?></th><td><?= $escaper->escapeHtml($request->getSummary()) ?></td></tr>
+            <?php if ($request->getDecisionNote() !== null): ?>
+                <tr><th><?= $escaper->escapeHtml(__('Decision Note')) ?></th><td><?= $escaper->escapeHtml($request->getDecisionNote()) ?></td></tr>
             <?php endif; ?>
-        </td></tr>
-        <tr><th><?= $block->escapeHtml(__('Request')) ?></th><td><?= $block->escapeHtml((string)$request->getData('summary')) ?></td></tr>
-        <?php if ($request->getData('custom_product_sku')): ?>
-            <tr><th><?= $block->escapeHtml(__('Approved SKU')) ?></th><td>
-                <?php if ($approvedProductUrl): ?>
-                    <a href="<?= $block->escapeUrl($approvedProductUrl) ?>" target="_blank" rel="noopener noreferrer"><?= $block->escapeHtml((string)$request->getData('custom_product_sku')) ?></a>
-                <?php else: ?>
-                    <?= $block->escapeHtml((string)$request->getData('custom_product_sku')) ?>
-                <?php endif; ?>
-            </td></tr>
-        <?php endif; ?>
-        </tbody></table>
+            <?php if ($viewModel->canResendEmail()): ?>
+                <tr>
+                    <th><?= $escaper->escapeHtml(__('Customer Email Sent')) ?></th>
+                    <td><?= $escaper->escapeHtml($request->getNotifiedAt() ?? (string)__('Not sent')) ?></td>
+                </tr>
+            <?php endif; ?>
+            </tbody>
+        </table>
     </div>
-</div>
-<div class="admin__page-section">
-    <div class="admin__page-section-title"><span class="title"><?= $block->escapeHtml(__('Requested Changes')) ?></span></div>
-    <div class="admin__page-section-content"><table class="admin__table-secondary"><tbody>
-    <?php foreach ($changes as $label => $value): ?><tr><th><?= $block->escapeHtml((string)$label) ?></th><td><?= $block->escapeHtml(is_scalar($value) ? (string)$value : json_encode($value)) ?></td></tr><?php endforeach; ?>
-    </tbody></table></div>
-</div>
-<?php if ($isPending): ?>
-<div class="admin__page-section"><div class="admin__page-section-title"><span class="title"><?= $block->escapeHtml(__('Decision')) ?></span></div><div class="admin__page-section-content">
-    <form method="post" action="<?= $block->escapeUrl($block->getApproveUrl()) ?>" class="admin__field">
-        <input type="hidden" name="form_key" value="<?= $block->escapeHtmlAttr($block->getFormKey()) ?>">
-        <label class="admin__field-label" for="decision_note"><span><?= $block->escapeHtml(__('Decision Note')) ?></span></label>
-        <div class="admin__field-control"><textarea class="admin__control-textarea" name="decision_note" id="decision_note"></textarea></div>
-        <div class="actions">
-            <button type="submit" class="action-primary"><span><?= $block->escapeHtml(__('Approve and Send')) ?></span></button>
-            <button type="submit" class="action-secondary" formaction="<?= $block->escapeUrl($block->getDeclineUrl()) ?>"><span><?= $block->escapeHtml(__('Decline')) ?></span></button>
+</section>
+
+<section class="admin__page-section">
+    <div class="admin__page-section-title"><span class="title"><?= $escaper->escapeHtml(__('Requested Changes')) ?></span></div>
+    <div class="admin__page-section-content">
+        <table class="admin__table-secondary">
+            <tbody>
+            <?php foreach ($viewModel->getRequestedChanges() as $label => $value): ?>
+                <tr><th><?= $escaper->escapeHtml($label) ?></th><td><?= $escaper->escapeHtml($value) ?></td></tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<?php if ($viewModel->isPending()): ?>
+    <section class="admin__page-section">
+        <div class="admin__page-section-title"><span class="title"><?= $escaper->escapeHtml(__('Decision')) ?></span></div>
+        <div class="admin__page-section-content">
+            <form method="post" action="<?= $escaper->escapeUrl($viewModel->getActionUrl('approve')) ?>">
+                <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($formKey) ?>">
+                <div class="admin__field">
+                    <label class="admin__field-label" for="decision_note"><span><?= $escaper->escapeHtml(__('Decision note (required to decline; a decline note is emailed to the customer)')) ?></span></label>
+                    <div class="admin__field-control"><textarea class="admin__control-textarea" name="decision_note" id="decision_note" rows="4"></textarea></div>
+                </div>
+                <div class="admin__field">
+                    <button type="submit" class="action-primary"><span><?= $escaper->escapeHtml(__('Approve and Notify')) ?></span></button>
+                    <button type="submit" class="action-secondary" formaction="<?= $escaper->escapeUrl($viewModel->getActionUrl('decline')) ?>"><span><?= $escaper->escapeHtml(__('Decline and Notify')) ?></span></button>
+                </div>
+            </form>
         </div>
-    </form>
-</div></div>
+    </section>
+<?php elseif ($viewModel->canResendEmail()): ?>
+    <section class="admin__page-section">
+        <div class="admin__page-section-content">
+            <form method="post" action="<?= $escaper->escapeUrl($viewModel->getActionUrl('notify')) ?>">
+                <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($formKey) ?>">
+                <button type="submit" class="action-secondary"><span><?= $escaper->escapeHtml(__('Resend Customer Email')) ?></span></button>
+            </form>
+        </div>
+    </section>
 <?php endif; ?>
-<div class="admin__page-section"><div class="admin__page-section-title"><span class="title"><?= $block->escapeHtml(__('History')) ?></span></div><div class="admin__page-section-content"><ol class="admin__list-reset">
-<?php foreach ($block->getHistory() as $history): ?><li><strong><?= $block->escapeHtml((string)$history->getData('action')) ?></strong> — <?= $block->escapeHtml((string)$history->getData('created_at')) ?><?= $history->getData('note') ? ': ' . $block->escapeHtml((string)$history->getData('note')) : '' ?></li><?php endforeach; ?>
-</ol></div></div>
+
+<section class="admin__page-section">
+    <div class="admin__page-section-title"><span class="title"><?= $escaper->escapeHtml(__('History')) ?></span></div>
+    <div class="admin__page-section-content">
+        <table class="admin__table-secondary">
+            <tbody>
+            <?php foreach ($viewModel->getHistory() as $entry): ?>
+                <tr>
+                    <th><?= $escaper->escapeHtml($entry->getCreatedAt()) ?></th>
+                    <td>
+                        <strong><?= $escaper->escapeHtml($entry->getAction()) ?></strong>
+                        (<?= $escaper->escapeHtml($entry->getActorType()) ?>)
+                        <?php if ($entry->getNote() !== null): ?>— <?= $escaper->escapeHtml($entry->getNote()) ?><?php endif; ?>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</section>

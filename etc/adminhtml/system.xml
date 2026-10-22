@@ -2,7 +2,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
-        <section id="perspective_ai_customization" translate="label" sortOrder="950" showInDefault="1" showInWebsite="1" showInStore="0">
+        <section id="perspective_ai_customization" translate="label" sortOrder="950" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Perspective AI Customization</label>
             <tab>general</tab>
             <resource>Perspective_AiCustomizationRequests::config</resource>
@@ -17,27 +17,28 @@
 
             <group id="widget" translate="label" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Widget content</label>
-                <field id="title" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1"><label>Assistant name</label></field>
+                <field id="title" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1"><label>Assistant name</label><validate>required-entry</validate></field>
                 <field id="icon" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1"><label>Assistant icon</label><comment>A short character or emoji shown in the launcher and header.</comment></field>
                 <field id="logo" translate="label" type="image" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1"><label>Assistant logo</label><backend_model>Magento\Config\Model\Config\Backend\Image</backend_model><upload_dir config="system/filesystem/media" scope_info="1">perspective/ai_customization</upload_dir><base_url type="media" scope_info="1">perspective/ai_customization</base_url><comment>Optional. Overrides the icon when set.</comment></field>
-                <field id="close_label" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1"><label>Close button label</label></field>
-                <field id="clear_label" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1"><label>New chat label</label></field>
-                <field id="input_placeholder" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1"><label>Message placeholder</label></field>
-                <field id="send_label" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1"><label>Send button label</label></field>
-                <field id="helper_text" translate="label" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1"><label>Composer helper text</label></field>
-                <field id="user_label" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1"><label>Customer message label</label></field>
-                <field id="context_label" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1"><label>Selected product label</label></field>
-                <field id="context_remove_label" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1"><label>Remove selection label</label></field>
-                <field id="product_label" translate="label" type="text" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1"><label>Product match label</label></field>
-                <field id="product_ask_label" translate="label" type="text" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1"><label>Ask about product label</label></field>
-                <field id="product_view_label" translate="label" type="text" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="1"><label>View product label</label></field>
+                <field id="close_label" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1"><label>Close button label</label><validate>required-entry</validate></field>
+                <field id="clear_label" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1"><label>New chat label</label><validate>required-entry</validate></field>
+                <field id="input_placeholder" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1"><label>Message placeholder</label><validate>required-entry</validate></field>
+                <field id="email_placeholder" translate="label" type="text" sortOrder="65" showInDefault="1" showInWebsite="1" showInStore="1"><label>Guest email placeholder</label><validate>required-entry</validate></field>
+                <field id="send_label" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1"><label>Send button label</label><validate>required-entry</validate></field>
+                <field id="helper_text" translate="label" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1"><label>Composer helper text</label><validate>required-entry</validate></field>
+                <field id="user_label" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1"><label>Customer message label</label><validate>required-entry</validate></field>
+                <field id="context_label" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1"><label>Selected product label</label><validate>required-entry</validate></field>
+                <field id="context_remove_label" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1"><label>Remove selection label</label><validate>required-entry</validate></field>
+                <field id="product_label" translate="label" type="text" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1"><label>Product match label</label><validate>required-entry</validate></field>
+                <field id="product_ask_label" translate="label" type="text" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1"><label>Ask about product label</label><validate>required-entry</validate></field>
+                <field id="product_view_label" translate="label" type="text" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="1"><label>View product label</label><validate>required-entry</validate></field>
             </group>
 
             <group id="widget_welcome" translate="label" sortOrder="16" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Widget welcome screen</label>
-                <field id="welcome_eyebrow" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1"><label>Eyebrow</label></field>
-                <field id="welcome_title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1"><label>Heading</label></field>
-                <field id="welcome_copy" translate="label" type="textarea" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1"><label>Description</label></field>
+                <field id="welcome_eyebrow" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1"><label>Eyebrow</label><validate>required-entry</validate></field>
+                <field id="welcome_title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1"><label>Heading</label><validate>required-entry</validate></field>
+                <field id="welcome_copy" translate="label" type="textarea" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1"><label>Description</label><validate>required-entry</validate></field>
                 <field id="prompt_one_label" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1"><label>First suggestion label</label></field>
                 <field id="prompt_one_text" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1"><label>First suggestion text</label></field>
                 <field id="prompt_two_label" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1"><label>Second suggestion label</label></field>
@@ -48,21 +49,23 @@
 
             <group id="widget_messages" translate="label" sortOrder="17" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Widget states and errors</label>
-                <field id="status_connecting" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1"><label>Connecting status</label></field>
-                <field id="status_ready" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1"><label>Ready status</label></field>
-                <field id="status_thinking" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1"><label>Thinking status</label></field>
-                <field id="status_unavailable" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1"><label>Unavailable status</label></field>
-                <field id="status_message_failed" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1"><label>Message failed status</label></field>
-                <field id="error_eyebrow" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1"><label>Error eyebrow</label></field>
-                <field id="error_title" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1"><label>Error heading</label></field>
-                <field id="error_copy" translate="label" type="textarea" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1"><label>Error description</label></field>
-                <field id="error_retry_label" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1"><label>Retry label</label></field>
-                <field id="message_send_error" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1"><label>Send error message</label></field>
+                <field id="status_connecting" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1"><label>Connecting status</label><validate>required-entry</validate></field>
+                <field id="status_ready" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1"><label>Ready status</label><validate>required-entry</validate></field>
+                <field id="status_thinking" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1"><label>Thinking status</label><validate>required-entry</validate></field>
+                <field id="status_unavailable" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1"><label>Unavailable status</label><validate>required-entry</validate></field>
+                <field id="status_message_failed" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1"><label>Message failed status</label><validate>required-entry</validate></field>
+                <field id="error_eyebrow" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1"><label>Error eyebrow</label><validate>required-entry</validate></field>
+                <field id="error_title" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1"><label>Error heading</label><validate>required-entry</validate></field>
+                <field id="error_copy" translate="label" type="textarea" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1"><label>Error description</label><validate>required-entry</validate></field>
+                <field id="error_retry_label" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1"><label>Retry label</label><validate>required-entry</validate></field>
+                <field id="message_send_error" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1"><label>Send error message</label><validate>required-entry</validate></field>
+                <field id="restore_progress" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1"><label>Cart restore progress</label><validate>required-entry</validate></field>
+                <field id="restore_error" translate="label" type="text" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1"><label>Cart restore error</label><validate>required-entry</validate></field>
             </group>
 
             <group id="widget_appearance" translate="label" sortOrder="18" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Widget appearance</label>
-                <comment>Enter six-digit hexadecimal colours, for example #1463D9.</comment>
+                <comment>Six-digit hexadecimal colours, for example #1463D9. Empty or invalid values use the stylesheet default.</comment>
                 <field id="primary_color" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1"><label>Primary colour</label></field>
                 <field id="primary_hover_color" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1"><label>Primary hover colour</label></field>
                 <field id="on_primary_color" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1"><label>Text on primary colour</label></field>
@@ -161,6 +164,10 @@
                 <field id="decline_template" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Decline Template</label>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
+                <field id="restore_link_ttl_days" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Restore Link Lifetime (Days)</label>
+                    <validate>validate-digits validate-digits-range digits-range-1-90</validate>
                 </field>
             </group>
         </section>

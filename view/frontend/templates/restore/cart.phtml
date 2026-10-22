@@ -1,0 +1,11 @@
+<?php
+/**
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Perspective\AiCustomizationRequests\ViewModel\RestoreCart $viewModel
+ */
+$viewModel = $block->getData('view_model');
+?>
+<div id="perspective-ai-restore-root" aria-live="polite"></div>
+<script type="text/x-magento-init">
+{"#perspective-ai-restore-root": {"Perspective_AiCustomizationRequests/js/restore-cart": <?= /* @noEscape */ $viewModel->getInitJson() ?>}}
+</script>

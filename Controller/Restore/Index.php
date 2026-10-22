@@ -6,7 +6,7 @@ namespace Perspective\AiCustomizationRequests\Controller\Restore;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\ForwardFactory;
-use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\View\Result\Page;
 use Magento\Framework\View\Result\PageFactory;
 
 class Index extends Action
@@ -26,13 +26,9 @@ class Index extends Action
             return $this->forwardFactory->create()->forward('noroute');
         }
 
+        /** @var Page $page */
         $page = $this->pageFactory->create();
-        $page->getConfig()->getTitle()->set(__('Restoring customization cart'));
-        $restoreWidget = $page->getLayout()->getBlock('perspective.ai.restore.widget');
-        if (!$restoreWidget) {
-            throw new LocalizedException(__('The customization restore page is not configured.'));
-        }
-        $restoreWidget->setData('restore_token', $token);
+        $page->getConfig()->getTitle()->set(__('Restoring your customization'));
 
         return $page;
     }

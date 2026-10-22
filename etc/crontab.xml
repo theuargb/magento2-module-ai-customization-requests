@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <job name="perspective_ai_chat_session_cleanup"
+             instance="Perspective\AiCustomizationRequests\Cron\CleanExpiredSessions"
+             method="execute">
+            <schedule>17 3 * * *</schedule>
+        </job>
+    </group>
+</config>

@@ -1,7 +1,9 @@
 <!--@subject {{trans "Your customization request was declined"}} @-->
 <!--@vars {
-"var request_uid":"Request UID",
-"var decline_reason":"Decline reason"
+"var request_name":"Request Name",
+"var decline_reason":"Decline Reason"
 } @-->
-<p>{{trans "Your customization request %1 was declined." request_uid}}</p>
-<p>{{trans "Reason: %1" decline_reason}}</p>
+{{template config_path="design/email/header_template"}}
+<p>{{trans "Unfortunately we cannot make your customization request \"%request_name\"." request_name=$request_name}}</p>
+<p>{{trans "Reason: %decline_reason" decline_reason=$decline_reason}}</p>
+{{template config_path="design/email/footer_template"}}

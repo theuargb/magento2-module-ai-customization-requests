@@ -12,6 +12,7 @@
                 <close_label>Close assistant</close_label>
                 <clear_label>New chat</clear_label>
                 <input_placeholder>Describe what you are looking for…</input_placeholder>
+                <email_placeholder>Your email for request updates</email_placeholder>
                 <send_label>➤</send_label>
                 <helper_text>Enter to send · Shift + Enter for a new line</helper_text>
                 <user_label>You</user_label>
@@ -43,6 +44,8 @@
                 <error_copy>Check the connection and try again.</error_copy>
                 <error_retry_label>Try again</error_retry_label>
                 <message_send_error>The message could not be sent.</message_send_error>
+                <restore_progress>Adding your customization to the cart…</restore_progress>
+                <restore_error>This customization link is no longer available.</restore_error>
             </widget_messages>
             <widget_appearance>
                 <primary_color>#1463D9</primary_color>
@@ -74,6 +77,7 @@
                 <sender_identity>general</sender_identity>
                 <approve_template>perspective_ai_customization_email_approve_template</approve_template>
                 <decline_template>perspective_ai_customization_email_decline_template</decline_template>
+                <restore_link_ttl_days>7</restore_link_ttl_days>
             </email>
         </perspective_ai_customization>
     </default>
