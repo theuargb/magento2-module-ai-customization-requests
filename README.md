@@ -5,6 +5,8 @@ vector index of the catalog. When a shopper asks for a change to a product
 ("I'd take these boots, but in green"), it turns that into a customization
 request for an admin to review.
 
+![Overview](docs/image.png)
+
 ## How it works
 
 1. The chat widget (Luma, RequireJS + LESS) is shown on every storefront page of a store view where
